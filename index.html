@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#000000">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Chunker</title>
-  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Text%20Chunker%22%2C%22short_name%22%3A%22Chunker%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
     body { background: #000; color: #fff; padding: 16px; display: flex; justify-content: center; }
@@ -42,23 +42,21 @@
 
 <div class="app">
   <textarea id="text" placeholder="متن را اینجا وارد کنید..."></textarea>
-
   <div class="row">
     <input type="number" id="limit" value="1500" step="100">
     <button onclick="setLimit(1500)">1.5K</button>
     <button onclick="setLimit(50000)">50K</button>
     <button class="primary" onclick="splitText()">تقسیم</button>
   </div>
-
   <div id="output" class="grid"></div>
 </div>
 
 <script>
-  let chunks = [];
-
-  function setLimit(n) {
-    document.getElementById('limit').value = n;
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
   }
+
+  function setLimit(n) { document.getElementById('limit').value = n; }
 
   function splitIntoSentences(text) {
     return (text.match(/[^.!?؟\n]+[.!?؟\n]+|[^.!?؟\n]+$/g) || []).map(s => s.trim()).filter(Boolean);
@@ -69,11 +67,10 @@
     const max = parseInt(document.getElementById('limit').value, 10) || 1500;
     const out = document.getElementById('output');
     out.innerHTML = '';
-    chunks = [];
-
     if (!text) return;
 
     const sentences = splitIntoSentences(text);
+    const chunks = [];
     let cur = '';
 
     for (const s of sentences) {
@@ -89,7 +86,6 @@
         }
         continue;
       }
-
       if ((cur + (cur ? ' ' : '') + s).length <= max) {
         cur += (cur ? ' ' : '') + s;
       } else {
@@ -116,6 +112,5 @@
     });
   }
 </script>
-
 </body>
 </html>
