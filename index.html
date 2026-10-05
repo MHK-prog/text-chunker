@@ -2,40 +2,114 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Chunker</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-    body { background: #000; color: #fff; padding: 16px; display: flex; justify-content: center; }
-    .app { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 12px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: calc(14px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+    .app {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
     textarea {
-      width: 100%; height: 180px; background: #0d0d0d; border: 1px solid #222;
-      border-radius: 10px; color: #fff; padding: 12px; font-size: 14px; outline: none; resize: vertical;
+      width: 100%;
+      height: 200px;
+      background: #0c0c0c;
+      border: 1px solid #222;
+      border-radius: 12px;
+      color: #fff;
+      padding: 14px;
+      font-size: 15px;
+      line-height: 1.5;
+      outline: none;
+      resize: none;
     }
     textarea:focus { border-color: #bb86fc; }
-    .row { display: flex; gap: 8px; }
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
     input {
-      flex: 1; background: #0d0d0d; border: 1px solid #222; border-radius: 8px;
-      color: #bb86fc; font-weight: bold; text-align: center; padding: 10px; font-size: 14px; outline: none;
+      width: 130px;
+      background: #0c0c0c;
+      border: 1px solid #222;
+      border-radius: 10px;
+      color: #bb86fc;
+      font-weight: 700;
+      text-align: center;
+      padding: 13px 8px;
+      font-size: 16px;
+      outline: none;
+      direction: ltr;
+      font-variant-numeric: tabular-nums;
     }
-    button {
-      background: #151515; border: 1px solid #222; color: #bb86fc;
-      border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: bold; cursor: pointer;
+    input:focus { border-color: #bb86fc; }
+    button.primary {
+      flex: 1;
+      background: #bb86fc;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
     }
-    button.primary { background: #bb86fc; color: #000; border: none; flex: 1.5; font-size: 15px; }
-    button:active { opacity: 0.7; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 6px; }
+    button.primary:active { opacity: 0.8; }
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+      padding-bottom: 20px;
+    }
     .btn-chunk {
-      background: #0d0d0d; border: 1px solid #222; color: #eee;
-      padding: 14px; border-radius: 8px; font-size: 14px; display: flex;
-      justify-content: space-between; align-items: center; cursor: pointer;
+      background: #0c0c0c;
+      border: 1px solid #222;
+      color: #eee;
+      min-height: 52px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
     }
-    .btn-chunk span { color: #bb86fc; font-size: 12px; }
-    .btn-chunk.copied { border-color: #bb86fc; background: #1a1025; color: #bb86fc; }
+    .btn-chunk span {
+      color: #bb86fc;
+      font-size: 13px;
+      direction: ltr;
+      font-variant-numeric: tabular-nums;
+    }
+    .btn-chunk.copied {
+      border-color: #bb86fc;
+      background: #190e28;
+      color: #bb86fc;
+    }
   </style>
 </head>
 <body>
@@ -43,9 +117,7 @@
 <div class="app">
   <textarea id="text" placeholder="متن را اینجا وارد کنید..."></textarea>
   <div class="row">
-    <input type="number" id="limit" value="1500" step="100">
-    <button onclick="setLimit(1500)">1.5K</button>
-    <button onclick="setLimit(50000)">50K</button>
+    <input type="number" id="limit" value="1500" inputmode="numeric" placeholder="Limit">
     <button class="primary" onclick="splitText()">تقسیم</button>
   </div>
   <div id="output" class="grid"></div>
@@ -55,8 +127,6 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
   }
-
-  function setLimit(n) { document.getElementById('limit').value = n; }
 
   function splitIntoSentences(text) {
     return (text.match(/[^.!?؟\n]+[.!?؟\n]+|[^.!?؟\n]+$/g) || []).map(s => s.trim()).filter(Boolean);
@@ -96,16 +166,18 @@
     if (cur.trim()) chunks.push(cur.trim());
 
     chunks.forEach((c, i) => {
+      const idx = i + 1;
+      const count = c.length;
       const btn = document.createElement('button');
       btn.className = 'btn-chunk';
-      btn.innerHTML = `کپی بخش ${i + 1} <span>(${c.length} حرف)</span>`;
+      btn.innerHTML = `کپی بخش ${idx} <span>(${count} chars)</span>`;
       btn.onclick = () => {
         navigator.clipboard.writeText(c);
         btn.classList.add('copied');
-        btn.innerHTML = `کپی شد! ✓ <span>(${c.length} حرف)</span>`;
+        btn.innerHTML = `کپی شد! ✓ <span>(${count} chars)</span>`;
         setTimeout(() => {
           btn.classList.remove('copied');
-          btn.innerHTML = `کپی بخش ${i + 1} <span>(${c.length} حرف)</span>`;
+          btn.innerHTML = `کپی بخش ${idx} <span>(${count} chars)</span>`;
         }, 1500);
       };
       out.appendChild(btn);
