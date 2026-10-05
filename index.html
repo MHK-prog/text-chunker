@@ -43,8 +43,9 @@
     button:hover{filter:brightness(1.1)}
     button:active{filter:brightness(.92)}
     #result{display:grid;gap:12px}
-    .chunk{margin:0;padding:14px;border:1px solid #34235a;border-radius:12px;background:#150a26;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;box-shadow:0 4px 14px -8px #00000088}
-    .chunk-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;color:#a08fc7;font-size:.85rem}
+    .chunk{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:12px;border:1px solid #34235a;border-radius:12px;background:#150a26;box-shadow:0 4px 14px -8px #00000088}
+    .chunk-head{display:grid;gap:4px;color:#a08fc7;font-size:.85rem}
+    .copy-btn{min-height:42px;padding:0 14px;white-space:nowrap}
     .empty{color:#8d7fb0;font-size:.92rem}
     @media(min-width:700px){body{align-items:center}main{min-height:100vh;min-height:100dvh}textarea{min-height:40dvh}}
     @media(max-width:360px){body{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}button{padding:0 10px}}
@@ -94,8 +95,18 @@
         const header=document.createElement('div');header.className='chunk-head';
         const label=document.createElement('span');label.textContent=`Chunk ${digits(index+1)} of ${digits(parts.length)}`;
         const length=document.createElement('span');length.className='count';length.textContent=digits(part.length)+' chars';
-        const content=document.createElement('div');content.textContent=part;
-        header.append(label,length);article.append(header,content);result.append(article);
+        const copy=document.createElement('button');copy.type='button';copy.className='copy-btn';copy.textContent='Copy chunk';
+        copy.addEventListener('click',async()=>{
+          try{
+            await navigator.clipboard.writeText(part);
+            copy.textContent='Copied!';
+            setTimeout(()=>{copy.textContent='Copy chunk'},1200);
+          }catch{
+            copy.textContent='Copy failed';
+            setTimeout(()=>{copy.textContent='Copy chunk'},1600);
+          }
+        });
+        header.append(label,length);article.append(header,copy);result.append(article);
       });
     });
     
