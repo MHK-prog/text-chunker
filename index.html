@@ -47,6 +47,7 @@
     .chunk-head{display:grid;gap:4px;color:#a08fc7;font-size:.85rem}
     .copy-btn{min-height:42px;padding:0 14px;white-space:nowrap}
     .empty{color:#8d7fb0;font-size:.92rem}
+    .version{margin-top:auto;padding-top:8px;text-align:center;color:#6f5f92;font-size:.75rem;opacity:.65}
     @media(min-width:700px){body{align-items:center}main{min-height:100vh;min-height:100dvh}textarea{min-height:40dvh}}
     @media(max-width:360px){body{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}button{padding:0 10px}}
   </style>
@@ -60,6 +61,7 @@
       <button id="split" type="button">Split</button>
     </div>
     <section id="result" aria-live="polite"><p class="empty">Chunks will appear here after splitting.</p></section>
+    <footer class="version">Version 1.1.0</footer>
   </main>
   <script>
     const source=document.querySelector('#source'), limit=document.querySelector('#limit'), count=document.querySelector('#charCount'), result=document.querySelector('#result');
