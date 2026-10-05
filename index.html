@@ -61,7 +61,7 @@
       <button id="split" type="button">Split</button>
     </div>
     <section id="result" aria-live="polite"><p class="empty">Chunks will appear here after splitting.</p></section>
-    <footer class="version">Version 1.1.0</footer>
+    <footer class="version">Version 1.1.1</footer>
   </main>
   <script>
     const source=document.querySelector('#source'), limit=document.querySelector('#limit'), count=document.querySelector('#charCount'), result=document.querySelector('#result');
@@ -85,13 +85,25 @@
 
     source.addEventListener('input',()=>{count.textContent=digits(source.value.length)});
     document.querySelector('#split').addEventListener('click',()=>{
-      let text=source.value, size=Math.floor(Number(limit.value));
+      const text=source.value, size=Math.floor(Number(limit.value));
       result.replaceChildren();
       if(!text){result.innerHTML='<p class="empty">Enter some text first.</p>';return}
       if(!Number.isFinite(size)||size<1){result.innerHTML='<p class="empty">Max characters must be a number greater than zero.</p>';return}
-      text=formatStory(text);
+      const units=formatStory(text).split('\n').filter(Boolean);
       const parts=[];
-      for(let i=0;i<text.length;i+=size)parts.push(text.slice(i,i+size));
+      let currentUnits=[], currentLength=0;
+      for(const unit of units){
+        const nextLength=currentLength+(currentUnits.length?1:0)+unit.length;
+        if(currentUnits.length&&nextLength>size){
+          parts.push(currentUnits.join('\n'));
+          currentUnits=[];
+          currentLength=0;
+        }
+        if(currentUnits.length)currentLength+=1;
+        currentUnits.push(unit);
+        currentLength+=unit.length;
+      }
+      if(currentUnits.length)parts.push(currentUnits.join('\n'));
       parts.forEach((part,index)=>{
         const article=document.createElement('article');article.className='chunk';
         const header=document.createElement('div');header.className='chunk-head';
