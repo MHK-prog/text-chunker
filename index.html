@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0d0518">
+  <link rel="manifest" href="manifest.json">
   <title>Text Splitter</title>
   <style>
     :root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-synthesis:none;background:#0d0518;color:#e9e2f5}
@@ -97,6 +98,10 @@
         header.append(label,length);article.append(header,content);result.append(article);
       });
     });
+    
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
   </script>
 </body>
 </html>
