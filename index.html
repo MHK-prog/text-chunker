@@ -1,188 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
-  <meta name="mobile-web-app-capable" content="yes">
-  <title>Chunker</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#183b36">
+  <meta name="description" content="ابزار تقسیم متن بر اساس تعداد کاراکتر">
+  <title>تقسیم‌کنندهٔ متن</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    body {
-      background: #000;
-      color: #fff;
-      min-height: 100vh;
-      min-height: 100dvh;
-      padding: calc(14px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));
-      display: flex;
-      justify-content: center;
-      overflow-x: hidden;
-    }
-    .app {
-      width: 100%;
-      max-width: 480px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    textarea {
-      width: 100%;
-      height: 200px;
-      background: #0c0c0c;
-      border: 1px solid #222;
-      border-radius: 12px;
-      color: #fff;
-      padding: 14px;
-      font-size: 15px;
-      line-height: 1.5;
-      outline: none;
-      resize: none;
-    }
-    textarea:focus { border-color: #bb86fc; }
-    .row {
-      display: flex;
-      gap: 10px;
-      align-items: stretch;
-    }
-    input {
-      width: 130px;
-      background: #0c0c0c;
-      border: 1px solid #222;
-      border-radius: 10px;
-      color: #bb86fc;
-      font-weight: 700;
-      text-align: center;
-      padding: 13px 8px;
-      font-size: 16px;
-      outline: none;
-      direction: ltr;
-      font-variant-numeric: tabular-nums;
-    }
-    input:focus { border-color: #bb86fc; }
-    button.primary {
-      flex: 1;
-      background: #bb86fc;
-      color: #000;
-      border: none;
-      border-radius: 10px;
-      padding: 13px;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-    button.primary:active { opacity: 0.8; }
-    .grid {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 4px;
-      padding-bottom: 20px;
-    }
-    .btn-chunk {
-      background: #0c0c0c;
-      border: 1px solid #222;
-      color: #eee;
-      min-height: 52px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-size: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-    .btn-chunk span {
-      color: #bb86fc;
-      font-size: 13px;
-      direction: ltr;
-      font-variant-numeric: tabular-nums;
-    }
-    .btn-chunk.copied {
-      border-color: #bb86fc;
-      background: #190e28;
-      color: #bb86fc;
-    }
+    :root{color-scheme:light;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-synthesis:none;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1;background:#f3f6f4;color:#172824}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden}
+    body{min-height:100vh;min-height:100dvh;padding:env(safe-area-inset-top) max(16px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px,env(safe-area-inset-left));display:flex;justify-content:center;align-items:stretch;background:#f3f6f4}
+    main{width:min(100%,680px);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:clamp(20px,5vw,36px) 0;gap:18px}
+    h1{font-size:clamp(1.35rem,5vw,1.75rem);line-height:1.35;margin:0;color:#183b36}
+    .intro{margin:0;color:#53625c;line-height:1.8;font-size:1rem}
+    .field-label{display:block;margin-bottom:8px;font-weight:650}
+    textarea,input,button{font:inherit}
+    textarea{display:block;width:100%;min-height:34dvh;flex:1;resize:vertical;border:1px solid #cbd7d1;border-radius:10px;background:#fff;padding:14px;color:#172824;font-size:1rem;line-height:1.8;outline:none}
+    textarea:focus,input:focus{border-color:#267763;box-shadow:0 0 0 3px #26776324}
+    .counts{display:flex;justify-content:space-between;gap:12px;color:#53625c;font-size:.9rem;direction:rtl}
+    .count{direction:ltr;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1;unicode-bidi:isolate}
+    .controls{display:grid;grid-template-columns:minmax(110px,1fr) minmax(130px,1fr);gap:12px;align-items:end}
+    .limit-wrap label{display:block;font-weight:650;margin-bottom:8px}
+    input[type=number]{direction:ltr;text-align:left;width:100%;min-width:0;height:50px;padding:0 12px;border:1px solid #cbd7d1;border-radius:9px;background:white;color:#172824;font-size:1rem;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1}
+    button{min-height:50px;border:0;border-radius:9px;background:#183b36;color:white;font-weight:700;padding:0 18px;cursor:pointer;touch-action:manipulation}
+    button:active{background:#24594f}
+    #result{display:grid;gap:12px}
+    .chunk{margin:0;padding:14px;border:1px solid #dce5e0;border-radius:9px;background:#fff;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
+    .chunk-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;color:#53625c;font-size:.85rem}
+    .empty{color:#68756f;font-size:.92rem}
+    @media(min-width:700px){body{align-items:center}main{min-height:100vh;min-height:100dvh}textarea{min-height:38dvh}}
+    @media(max-width:360px){body{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}button{padding:0 10px}}
   </style>
 </head>
 <body>
-
-<div class="app">
-  <textarea id="text" placeholder="متن را اینجا وارد کنید..."></textarea>
-  <div class="row">
-    <input type="number" id="limit" value="1500" inputmode="numeric" placeholder="Limit">
-    <button class="primary" onclick="splitText()">تقسیم</button>
-  </div>
-  <div id="output" class="grid"></div>
-</div>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
-
-  function splitIntoSentences(text) {
-    return (text.match(/[^.!?؟\n]+[.!?؟\n]+|[^.!?؟\n]+$/g) || []).map(s => s.trim()).filter(Boolean);
-  }
-
-  function splitText() {
-    const text = document.getElementById('text').value.trim();
-    const max = parseInt(document.getElementById('limit').value, 10) || 1500;
-    const out = document.getElementById('output');
-    out.innerHTML = '';
-    if (!text) return;
-
-    const sentences = splitIntoSentences(text);
-    const chunks = [];
-    let cur = '';
-
-    for (const s of sentences) {
-      if (s.length > max) {
-        if (cur) { chunks.push(cur); cur = ''; }
-        for (const w of s.split(/\s+/)) {
-          if ((cur + ' ' + w).trim().length > max) {
-            chunks.push(cur.trim());
-            cur = w;
-          } else {
-            cur = cur ? (cur + ' ' + w) : w;
-          }
-        }
-        continue;
-      }
-      if ((cur + (cur ? ' ' : '') + s).length <= max) {
-        cur += (cur ? ' ' : '') + s;
-      } else {
-        chunks.push(cur.trim());
-        cur = s;
-      }
-    }
-    if (cur.trim()) chunks.push(cur.trim());
-
-    chunks.forEach((c, i) => {
-      const idx = i + 1;
-      const count = c.length;
-      const btn = document.createElement('button');
-      btn.className = 'btn-chunk';
-      btn.innerHTML = `کپی بخش ${idx} <span>(${count} chars)</span>`;
-      btn.onclick = () => {
-        navigator.clipboard.writeText(c);
-        btn.classList.add('copied');
-        btn.innerHTML = `کپی شد! ✓ <span>(${count} chars)</span>`;
-        setTimeout(() => {
-          btn.classList.remove('copied');
-          btn.innerHTML = `کپی بخش ${idx} <span>(${count} chars)</span>`;
-        }, 1500);
-      };
-      out.appendChild(btn);
+  <main>
+    <header>
+      <h1>تقسیم‌کنندهٔ متن</h1>
+      <p class="intro">متن را وارد کنید و اندازهٔ دلخواه هر بخش را تعیین کنید.</p>
+    </header>
+    <label class="field-label" for="source">متن</label>
+    <textarea id="source" placeholder="متن خود را اینجا وارد کنید…" spellcheck="false"></textarea>
+    <div class="counts" aria-live="polite"><span>تعداد کاراکتر</span><span class="count" id="charCount">0</span></div>
+    <div class="controls">
+      <div class="limit-wrap"><label for="limit">حداکثر کاراکتر</label><input id="limit" type="number" inputmode="numeric" min="1" step="1" value="1500" lang="en"></div>
+      <button id="split" type="button">تقسیم</button>
+    </div>
+    <section id="result" aria-live="polite"><p class="empty">بخش‌های متن پس از تقسیم اینجا نمایش داده می‌شوند.</p></section>
+  </main>
+  <script>
+    const source=document.querySelector('#source'), limit=document.querySelector('#limit'), count=document.querySelector('#charCount'), result=document.querySelector('#result');
+    const digits=n=>new Intl.NumberFormat('en-US',{useGrouping:false}).format(n);
+    source.addEventListener('input',()=>{count.textContent=digits(source.value.length)});
+    document.querySelector('#split').addEventListener('click',()=>{
+      const text=source.value, size=Math.floor(Number(limit.value));
+      result.replaceChildren();
+      if(!text){result.innerHTML='<p class="empty">ابتدا متنی وارد کنید.</p>';return}
+      if(!Number.isFinite(size)||size<1){result.innerHTML='<p class="empty">حداکثر کاراکتر باید عددی بزرگ‌تر از صفر باشد.</p>';return}
+      const parts=[];
+      for(let i=0;i<text.length;i+=size)parts.push(text.slice(i,i+size));
+      parts.forEach((part,index)=>{
+        const article=document.createElement('article');article.className='chunk';
+        const header=document.createElement('div');header.className='chunk-head';
+        const label=document.createElement('span');label.textContent=`بخش ${digits(index+1)} از ${digits(parts.length)}`;
+        const length=document.createElement('span');length.className='count';length.textContent=digits(part.length)+' کاراکتر';
+        const content=document.createElement('div');content.textContent=part;
+        header.append(label,length);article.append(header,content);result.append(article);
+      });
     });
-  }
-</script>
+    if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));
+  </script>
 </body>
 </html>
