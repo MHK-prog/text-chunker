@@ -1,4 +1,4 @@
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.1.3';
 const CACHE_PREFIX = 'splitter-';
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 const ASSETS = ['./', './index.html', './manifest.webmanifest'];
