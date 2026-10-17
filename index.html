@@ -46,6 +46,7 @@
     .chunk{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:12px;border:1px solid #34235a;border-radius:12px;background:#150a26;box-shadow:0 4px 14px -8px #00000088}
     .chunk-head{display:grid;gap:4px;color:#a08fc7;font-size:.85rem}
     .copy-btn{min-height:42px;padding:0 14px;white-space:nowrap}
+    .copy-btn.is-copied{background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:0 6px 18px -6px #22c55e88}
     .empty{color:#8d7fb0;font-size:.92rem}
     .version{margin-top:auto;padding-top:8px;text-align:center;color:#6f5f92;font-size:.75rem;opacity:.65}
     @media(min-width:700px){body{align-items:center}main{min-height:100vh;min-height:100dvh}textarea{min-height:40dvh}}
@@ -61,11 +62,29 @@
       <button id="split" type="button">Split</button>
     </div>
     <section id="result" aria-live="polite"><p class="empty">Chunks will appear here after splitting.</p></section>
-    <footer class="version">Version 1.1.3</footer>
+    <footer class="version">Version 1.1.4</footer>
   </main>
   <script>
     const source=document.querySelector('#source'), limit=document.querySelector('#limit'), count=document.querySelector('#charCount'), result=document.querySelector('#result');
     const digits=n=>new Intl.NumberFormat('en-US',{useGrouping:false}).format(n);
+    const LAST_COPIED_KEY='text-splitter-last-copied';
+
+    function splitId(text,size){
+      let hash=2166136261;
+      for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619)}
+      return `${(hash>>>0).toString(36)}:${size}`;
+    }
+
+    function readLastCopied(){
+      try{
+        const saved=JSON.parse(localStorage.getItem(LAST_COPIED_KEY)||'null');
+        return saved&&typeof saved.splitId==='string'&&Number.isInteger(saved.index)?saved:null;
+      }catch{return null}
+    }
+
+    function saveLastCopied(id,index){
+      try{localStorage.setItem(LAST_COPIED_KEY,JSON.stringify({splitId:id,index}))}catch{}
+    }
 
     const DIALOGUE_RE=/(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)/g;
     const IS_DIALOGUE_RE=/^(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)$/;
@@ -89,6 +108,7 @@
       result.replaceChildren();
       if(!text){result.innerHTML='<p class="empty">Enter some text first.</p>';return}
       if(!Number.isFinite(size)||size<1){result.innerHTML='<p class="empty">Max characters must be a number greater than zero.</p>';return}
+      const id=splitId(text,size), lastCopied=readLastCopied();
       const units=formatStory(text).split('\n').filter(Boolean);
       const parts=[];
       let currentUnits=[], currentLength=0;
@@ -110,14 +130,19 @@
         const label=document.createElement('span');label.textContent=`Chunk ${digits(index+1)} of ${digits(parts.length)}`;
         const length=document.createElement('span');length.className='count';length.textContent=digits(part.length)+' chars';
         const copy=document.createElement('button');copy.type='button';copy.className='copy-btn';copy.textContent='Copy chunk';
+        if(lastCopied?.splitId===id&&lastCopied.index===index){copy.classList.add('is-copied');copy.textContent='Copied ✓'}
         copy.addEventListener('click',async()=>{
           try{
             await navigator.clipboard.writeText(part);
-            copy.textContent='Copied!';
-            setTimeout(()=>{copy.textContent='Copy chunk'},1200);
+            if(!copy.isConnected)return;
+            result.querySelectorAll('.copy-btn.is-copied').forEach(button=>{button.classList.remove('is-copied');button.textContent='Copy chunk'});
+            copy.classList.add('is-copied');
+            copy.textContent='Copied ✓';
+            saveLastCopied(id,index);
           }catch{
+            if(!copy.isConnected)return;
             copy.textContent='Copy failed';
-            setTimeout(()=>{copy.textContent='Copy chunk'},1600);
+            setTimeout(()=>{copy.textContent=copy.classList.contains('is-copied')?'Copied ✓':'Copy chunk'},1600);
           }
         });
         header.append(label,length);article.append(header,copy);result.append(article);
