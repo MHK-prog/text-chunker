@@ -3,8 +3,8 @@
   "short_name": "متن‌چین",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0d0518",
-  "theme_color": "#0d0518",
+  "background_color": "#100a19",
+  "theme_color": "#100a19",
   "icons": [
     {
       "src": "icons/icon-192.png",

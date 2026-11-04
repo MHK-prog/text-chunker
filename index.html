@@ -3,127 +3,182 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0d0518">
+  <meta name="theme-color" content="#100a19">
   <meta name="description" content="تقسیم متن به جمله‌ها و دیالوگ‌ها، ترجمه با Chrome و محاوره‌ای‌سازی فارسی">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="./fonts/Vazir-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/Vazir-Bold.woff2" as="font" type="font/woff2" crossorigin>
   <title>متن‌چین و محاوره‌ای‌ساز</title>
   <style>
-    :root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-synthesis:none;background:#0d0518;color:#e9e2f5}
+    @font-face{font-family:Vazir;src:url('./fonts/Vazir-Regular.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap}
+    @font-face{font-family:Vazir;src:url('./fonts/Vazir-Bold.woff2') format('woff2');font-style:normal;font-weight:700;font-display:swap}
+    :root{color-scheme:dark;font-family:Vazir,system-ui,sans-serif;font-synthesis:none;background:#100a19;color:#f3eefb}
     *{box-sizing:border-box}
     [hidden]{display:none!important}
     html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden}
     body{
       min-height:100vh;min-height:100dvh;
-      padding:env(safe-area-inset-top) max(16px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px,env(safe-area-inset-left));
-      display:flex;justify-content:center;align-items:stretch;
-      background:radial-gradient(900px 500px at 85% -10%,#3b1a6e55,transparent 60%),radial-gradient(700px 400px at 0% 110%,#6d28d933,transparent 60%),#0d0518;
+      padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+      display:flex;justify-content:center;align-items:center;
+      background:radial-gradient(700px 420px at 50% -12%,#713bb033,transparent 68%),#100a19;
     }
-    main{width:min(100%,760px);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:clamp(20px,5vw,36px) 0;gap:16px}
+    main{width:min(100%,680px);min-height:calc(100vh - 36px);min-height:calc(100dvh - 36px);display:flex;flex-direction:column;justify-content:center;gap:20px}
     h1,h2,p{margin:0}
-    h1{font-size:clamp(1.4rem,5vw,2rem)}
-    h2{font-size:1.1rem}
-    .app-header{display:grid;gap:6px}
-    .app-header p,.hint{color:#a99cc4;line-height:1.8}
-    .panel{display:grid;gap:14px;padding:16px;border:1px solid #34235a;border-radius:14px;background:#150a26;box-shadow:0 8px 24px -16px #000}
-    label{display:block;font-weight:650;margin-bottom:7px;color:#d7cbf0}
+    h1{font-size:1.25rem;line-height:1.4}
+    h2{font-size:1.08rem}
+    .topbar{width:100%;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px;text-align:center}
+    .brand{display:grid;justify-items:center;gap:4px}
+    .brand-mark{width:34px;height:34px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#9b66ff,#6a35c8);box-shadow:0 7px 22px #7c3aed55;color:#fff;font-size:1.15rem}
+    .brand-caption{color:#a99cc4;font-size:.78rem}
+    .icon-button{width:42px;min-height:42px;padding:0;border:1px solid #44355c;border-radius:14px;background:#1a1326;color:#e9e2f5;box-shadow:none;font-size:1.1rem}
+    .panel{width:100%;display:grid;justify-items:center;gap:16px;padding:clamp(16px,5vw,26px);border:1px solid #342747;border-radius:22px;background:linear-gradient(150deg,#1b1427ee,#171020ee);box-shadow:0 18px 48px -34px #000}
+    .entry-label{font-size:.92rem;font-weight:700;color:#ded3ee;text-align:center}
     textarea,input,button{font:inherit}
     textarea{
-      display:block;width:100%;min-height:30dvh;resize:vertical;
-      border:1px solid #3d2a63;border-radius:10px;background:#160b28;
-      padding:14px;color:#f0eaf9;font-size:1rem;line-height:1.8;outline:none;
-      box-shadow:inset 0 1px 0 #ffffff08;
+      display:block;width:100%;min-height:clamp(190px,34dvh,330px);resize:vertical;
+      border:1px solid #3d3152;border-radius:16px;background:#120d1b;
+      padding:16px;color:#f0eaf9;font-size:1rem;line-height:1.9;outline:none;text-align:center;
+      box-shadow:inset 0 1px 0 #ffffff08;transition:border-color .18s,box-shadow .18s;
     }
-    textarea:focus,input:focus{border-color:#a78bfa;box-shadow:0 0 0 3px #8b5cf63d}
-    textarea::placeholder{color:#6f5f92}
-    .counts{display:flex;justify-content:space-between;gap:12px;color:#a99cc4;font-size:.9rem}
+    textarea:focus,input:focus{border-color:#ae8cff;box-shadow:0 0 0 3px #8b5cf638}
+    textarea::placeholder{color:#897c9b}
+    .counts{display:flex;justify-content:center;gap:8px;color:#aa9cbd;font-size:.86rem}
     .count{font-variant-numeric:lining-nums tabular-nums}
-    .controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.75fr);gap:12px;align-items:end}
-    input[type=number]{width:100%;min-width:0;height:48px;padding:0 12px;border:1px solid #3d2a63;border-radius:9px;background:#160b28;color:#f0eaf9;font-size:1rem}
-    .actions,.file-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+    .actions{width:100%;display:grid;justify-items:center;gap:10px}
     button,.file-label{
-      min-height:46px;border:0;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;
-      font-weight:700;padding:0 16px;cursor:pointer;touch-action:manipulation;
-      box-shadow:0 6px 18px -6px #7c3aed88;transition:filter .15s;display:inline-flex;align-items:center;justify-content:center;
+      min-height:50px;border:1px solid transparent;border-radius:14px;background:linear-gradient(135deg,#8751e8,#a15bf0);color:#fff;
+      font-weight:700;padding:0 18px;cursor:pointer;touch-action:manipulation;
+      box-shadow:0 8px 20px -10px #9b5efcaa;transition:filter .15s,transform .15s;display:inline-flex;align-items:center;justify-content:center;text-align:center;
     }
-    button:hover,.file-label:hover{filter:brightness(1.1)}
-    button:active{filter:brightness(.92)}
-    button.secondary,.file-label{background:#291b42;border:1px solid #4d3770;box-shadow:none}
-    button.is-copied{background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:0 6px 18px -6px #22c55e88}
+    button:hover,.file-label:hover{filter:brightness(1.08)}
+    button:active{filter:brightness(.94);transform:translateY(1px)}
+    button:focus-visible,.file-label:focus-within{outline:2px solid #c1a5ff;outline-offset:3px}
+    button.primary{width:min(100%,360px)}
+    button.secondary,.file-label{background:#211a2d;border-color:#463957;color:#ded3ee;box-shadow:none}
+    button.text-button{min-height:40px;background:transparent;border-color:transparent;box-shadow:none;color:#bba5e3}
+    button.is-copied{background:linear-gradient(135deg,#16834d,#22b878);box-shadow:0 7px 18px -9px #22c55e88}
     button:disabled{opacity:.5;cursor:not-allowed}
-    .file-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-    .status{font-size:.88rem;color:#9dc9a8}
+    .status{font-size:.82rem;color:#9dc9a8;text-align:center}
     .status.error{color:#fca5a5}
     .translation-text{
-      min-height:180px;max-height:50dvh;overflow:auto;margin:0;padding:14px;border:1px solid #3d2a63;border-radius:10px;
-      background:#160b28;color:#f0eaf9;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere
+      width:100%;min-height:180px;max-height:50dvh;overflow:auto;margin:0;padding:14px;border:1px solid #3d3152;border-radius:14px;
+      background:#120d1b;color:#f0eaf9;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;text-align:center
     }
-    .translation-instructions{padding:12px;border-radius:9px;background:#211536;color:#d7cbf0;line-height:1.9}
-    .results-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    #result{display:grid;gap:12px}
-    .chunk{display:grid;gap:10px;margin:0;padding:12px;border:1px solid #34235a;border-radius:12px;background:#160b28}
-    .chunk-head{display:flex;justify-content:space-between;gap:12px;color:#a08fc7;font-size:.85rem}
-    .chunk-text{margin:0;overflow-wrap:anywhere;white-space:pre-wrap;font:inherit;line-height:1.9;color:#f0eaf9}
-    .copy-btn{justify-self:start;min-height:40px;padding:0 14px;white-space:nowrap}
-    .empty{color:#a99cc4;line-height:1.7}
-    .version{margin-top:auto;padding-top:8px;text-align:center;color:#6f5f92;font-size:.75rem;opacity:.7}
-    @media(max-width:430px){body{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.panel{padding:12px}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}button,.file-label{padding:0 11px}}
+    .section-heading{display:grid;justify-items:center;gap:5px;text-align:center}
+    .section-heading p{color:#a99cc4;font-size:.86rem;line-height:1.7}
+    .results-heading{display:grid;justify-items:center;gap:7px;text-align:center}
+    #result{width:100%;display:grid;justify-items:center;gap:12px}
+    .chunk{width:100%;display:grid;justify-items:center;gap:12px;margin:0;padding:16px;border:1px solid #382c49;border-radius:17px;background:#15101f;text-align:center}
+    .chunk-head{width:100%;display:grid;justify-items:center;gap:3px;color:#ab9abf;font-size:.84rem}
+    .chunk-text{width:100%;margin:0;overflow-wrap:anywhere;white-space:pre-wrap;font:inherit;line-height:1.9;color:#f0eaf9;text-align:center}
+    .copy-btn{min-width:144px;min-height:42px;white-space:nowrap}
+    .empty{color:#a99cc4;line-height:1.7;text-align:center}
+    .version{margin-top:auto;padding-top:8px;text-align:center;color:#756984;font-size:.73rem;opacity:.75}
+    .modal{width:min(92vw,480px);max-height:min(82dvh,680px);overflow:auto;padding:22px;border:1px solid #49395f;border-radius:22px;background:#1a1424;color:#f3eefb;box-shadow:0 24px 80px #0009;text-align:center}
+    .modal::backdrop{background:#08050dc9;backdrop-filter:blur(5px)}
+    .modal-content{display:grid;justify-items:center;gap:16px}
+    .modal-title{font-size:1.18rem}
+    .modal-copy{display:grid;gap:12px;color:#c6bad7;line-height:1.9;text-align:center}
+    .modal-copy p{margin:0}
+    .modal-list{display:grid;gap:10px;padding:0;list-style:none}
+    .modal-list li{padding:10px 12px;border:1px solid #382c49;border-radius:13px;background:#15101f}
+    .settings-field{width:100%;display:grid;justify-items:center;gap:8px}
+    input[type=number]{width:min(100%,240px);height:48px;padding:0 12px;border:1px solid #3d3152;border-radius:12px;background:#120d1b;color:#f0eaf9;text-align:center;font-size:1rem}
+    .file-actions{display:grid;justify-items:center;gap:10px;width:100%}
+    .file-label{width:min(100%,280px);min-height:44px;margin:0}
+    .file-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    .modal-actions{width:100%;display:grid;justify-items:center;gap:8px}
+    .modal-actions button{width:min(100%,280px)}
+    @media(max-width:480px){
+      body{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+      main{min-height:calc(100vh - 34px);min-height:calc(100dvh - 34px);gap:16px}
+      .panel{gap:14px;padding:16px 13px;border-radius:19px}
+      textarea{min-height:34dvh;padding:14px;border-radius:14px}
+      .modal{padding:19px 16px}
+    }
   </style>
 </head>
 <body>
   <main>
-    <header class="app-header" translate="no">
-      <h1>متن‌چین و محاوره‌ای‌ساز</h1>
-      <p>متن را مستقیم به چانک‌های جمله‌ای تقسیم کن، یا اول در Chrome ترجمه‌اش کن و بعد محاوره‌ای‌سازی و تقسیم کن.</p>
+    <header class="topbar" translate="no">
+      <button id="helpOpen" class="icon-button" type="button" aria-label="راهنما" title="راهنما">؟</button>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <h1>متن‌چین</h1>
+        <span class="brand-caption">تقسیم متن و محاوره‌ای‌سازی</span>
+      </div>
+      <button id="settingsOpen" class="icon-button" type="button" aria-label="تنظیمات" title="تنظیمات">⚙</button>
     </header>
 
     <section id="inputSection" class="panel" translate="no">
       <div>
-        <label for="source">متن ورودی</label>
-        <textarea id="source" dir="auto" placeholder="متنت را اینجا بنویس یا جای‌گذاری کن…" spellcheck="false"></textarea>
+        <label class="entry-label" for="source">متنت رو اینجا وارد کن</label>
+        <textarea id="source" dir="auto" placeholder="متن را بنویس یا جای‌گذاری کن…" spellcheck="false"></textarea>
       </div>
-      <div class="counts" aria-live="polite"><span>تعداد نویسه‌ها</span><span class="count" id="charCount">۰</span></div>
-      <div class="file-actions">
-        <label class="file-label" for="textFile">بارگذاری فایل متنی</label>
-        <input class="file-input" id="textFile" type="file" accept=".txt,text/plain">
-        <label class="file-label" for="rulesFile">بارگذاری rules.json</label>
-        <input class="file-input" id="rulesFile" type="file" accept=".json,application/json">
+      <div class="counts" aria-live="polite"><span id="charCount">۰ نویسه</span></div>
+      <div class="actions">
+        <button id="splitButton" class="primary" type="button">تقسیم به چانک</button>
+        <button id="prepareButton" class="secondary primary" type="button">ترجمه و محاوره‌ای‌سازی</button>
       </div>
-      <div class="controls">
-        <div><label for="limit">حداکثر نویسه در هر چانک</label><input id="limit" type="number" inputmode="numeric" min="1" step="1" value="2000"></div>
-        <div class="actions">
-          <button id="splitButton" type="button">تقسیم مستقیم</button>
-          <button id="prepareButton" class="secondary" type="button">آماده‌سازی ترجمه در Chrome</button>
-        </div>
-      </div>
-      <div id="rulesStatus" class="status" aria-live="polite">در حال بارگذاری قوانین محاوره‌ای‌سازی…</div>
     </section>
 
     <section id="translationSection" class="panel" hidden>
-      <div class="translation-instructions" translate="no">
-        <h2>ترجمه در Chrome</h2>
-        <p class="hint">از منوی Chrome گزینهٔ «ترجمه به فارسی» را بزن. بعد از ترجمه، دکمهٔ پایین متن ترجمه‌شده را محاوره‌ای می‌کند و آن را به چانک‌های جمله‌ای تقسیم می‌کند.</p>
+      <div class="section-heading" translate="no">
+        <h2>ترجمه با Chrome</h2>
+        <p>اول صفحه را ترجمه کن، بعد ادامه بده.</p>
       </div>
       <div id="translationText" class="translation-text" dir="auto" translate="yes"></div>
       <div class="actions" translate="no">
-        <button id="convertButton" type="button" disabled>محاوره‌ای‌سازی و تقسیم</button>
-        <button id="backButton" class="secondary" type="button">بازگشت به ورودی</button>
+        <button id="translationHelp" class="text-button" type="button">راهنمای ترجمه</button>
+        <button id="convertButton" class="primary" type="button" disabled>محاوره‌ای‌سازی و تقسیم</button>
+        <button id="backButton" class="secondary primary" type="button">بازگشت</button>
       </div>
     </section>
 
     <section id="resultsSection" class="panel" hidden translate="no">
-      <div class="results-heading">
+      <div class="results-heading" translate="no">
         <h2 id="resultsTitle">چانک‌ها</h2>
         <span id="resultSummary" class="status"></span>
       </div>
-      <div class="actions">
-        <button id="copyAllButton" class="secondary" type="button">کپی کل متن</button>
-        <button id="downloadButton" class="secondary" type="button">دانلود فایل متنی</button>
-        <button id="newTextButton" class="secondary" type="button">متن دیگر</button>
+      <div class="actions" translate="no">
+        <button id="copyAllButton" class="secondary primary" type="button">کپی کل متن</button>
+        <button id="downloadButton" class="secondary primary" type="button">دانلود متن</button>
+        <button id="newTextButton" class="text-button" type="button">متن دیگر</button>
       </div>
       <div id="result" aria-live="polite"></div>
     </section>
 
-    <footer class="version" translate="no">نسخهٔ 1.2.0</footer>
+    <dialog id="helpDialog" class="modal" aria-labelledby="helpTitle">
+      <div class="modal-content" translate="no">
+        <h2 id="helpTitle" class="modal-title">راهنما</h2>
+        <div class="modal-copy">
+          <p><strong>تقسیم مستقیم:</strong> متن را وارد کن و «تقسیم به چانک» را بزن. جمله‌ها و دیالوگ‌ها جدا می‌شوند و هرکدام در یک خط قرار می‌گیرند.</p>
+          <p><strong>ترجمه و محاوره‌ای‌سازی:</strong> «ترجمه و محاوره‌ای‌سازی» را بزن، سپس از منوی Chrome گزینهٔ «ترجمه به فارسی» را انتخاب کن و بعد دکمهٔ محاوره‌ای‌سازی را بزن.</p>
+          <p>اندازهٔ چانک و بارگذاری فایل‌ها در تنظیمات است. چانک کپی‌شده بعد از بازسازی متن هم مشخص می‌ماند.</p>
+        </div>
+        <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>بستن</button></div>
+      </div>
+    </dialog>
+
+    <dialog id="settingsDialog" class="modal" aria-labelledby="settingsTitle">
+      <div class="modal-content" translate="no">
+        <h2 id="settingsTitle" class="modal-title">تنظیمات</h2>
+        <div class="settings-field">
+          <label for="limit">حداکثر نویسه در هر چانک</label>
+          <input id="limit" type="number" inputmode="numeric" min="1" step="1" value="2000">
+        </div>
+        <div class="file-actions">
+          <label class="file-label" for="textFile">بارگذاری فایل متنی</label>
+          <input class="file-input" id="textFile" type="file" accept=".txt,text/plain">
+          <label class="file-label" for="rulesFile">بارگذاری rules.json</label>
+          <input class="file-input" id="rulesFile" type="file" accept=".json,application/json">
+        </div>
+        <div id="rulesStatus" class="status" aria-live="polite">در حال بارگذاری قوانین محاوره‌ای‌سازی…</div>
+        <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>بستن</button></div>
+      </div>
+    </dialog>
+
+    <footer class="version" translate="no">نسخهٔ 1.3.0</footer>
   </main>
 
   <script src="./engine.js"></script>
@@ -134,6 +189,18 @@
     const LAST_COPIED_KEY = 'text-splitter-last-copied';
     let rules = null;
     let currentOutput = '';
+
+    $('helpOpen').addEventListener('click', () => $('helpDialog').showModal());
+    $('settingsOpen').addEventListener('click', () => $('settingsDialog').showModal());
+    $('translationHelp').addEventListener('click', () => $('helpDialog').showModal());
+    document.querySelectorAll('[data-close-dialog]').forEach(button => {
+      button.addEventListener('click', () => button.closest('dialog').close());
+    });
+    document.querySelectorAll('dialog').forEach(dialog => {
+      dialog.addEventListener('click', event => {
+        if (event.target === dialog) dialog.close();
+      });
+    });
 
     const DIALOGUE_RE = /(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)/g;
     const IS_DIALOGUE_RE = /^(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)$/;
@@ -306,7 +373,7 @@
     loadRules();
 
     source.addEventListener('input', () => {
-      $('charCount').textContent = digits(source.value.length);
+      $('charCount').textContent = digits(source.value.length) + ' نویسه';
     });
 
     $('textFile').addEventListener('change', async event => {
