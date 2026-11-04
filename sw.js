@@ -1,7 +1,7 @@
-const APP_VERSION = '1.1.4';
+const APP_VERSION = '1.2.0';
 const CACHE_PREFIX = 'splitter-';
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
-const ASSETS = ['./', './index.html', './manifest.webmanifest'];
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './engine.js', './rules.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(

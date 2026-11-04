@@ -1,6 +1,6 @@
 {
-  "name": "Text Splitter",
-  "short_name": "Splitter",
+  "name": "متن‌چین و محاوره‌ای‌ساز",
+  "short_name": "متن‌چین",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0d0518",

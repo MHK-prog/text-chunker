@@ -1,29 +1,35 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0d0518">
+  <meta name="description" content="تقسیم متن به جمله‌ها و دیالوگ‌ها، ترجمه با Chrome و محاوره‌ای‌سازی فارسی">
   <link rel="manifest" href="manifest.webmanifest">
-  <title>Text Splitter</title>
+  <title>متن‌چین و محاوره‌ای‌ساز</title>
   <style>
     :root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-synthesis:none;background:#0d0518;color:#e9e2f5}
     *{box-sizing:border-box}
+    [hidden]{display:none!important}
     html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden}
     body{
       min-height:100vh;min-height:100dvh;
       padding:env(safe-area-inset-top) max(16px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px,env(safe-area-inset-left));
       display:flex;justify-content:center;align-items:stretch;
-      background:
-        radial-gradient(900px 500px at 85% -10%, #3b1a6e55, transparent 60%),
-        radial-gradient(700px 400px at 0% 110%, #6d28d933, transparent 60%),
-        #0d0518;
+      background:radial-gradient(900px 500px at 85% -10%,#3b1a6e55,transparent 60%),radial-gradient(700px 400px at 0% 110%,#6d28d933,transparent 60%),#0d0518;
     }
-    main{width:min(100%,680px);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:clamp(20px,5vw,36px) 0;gap:18px}
+    main{width:min(100%,760px);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:clamp(20px,5vw,36px) 0;gap:16px}
+    h1,h2,p{margin:0}
+    h1{font-size:clamp(1.4rem,5vw,2rem)}
+    h2{font-size:1.1rem}
+    .app-header{display:grid;gap:6px}
+    .app-header p,.hint{color:#a99cc4;line-height:1.8}
+    .panel{display:grid;gap:14px;padding:16px;border:1px solid #34235a;border-radius:14px;background:#150a26;box-shadow:0 8px 24px -16px #000}
+    label{display:block;font-weight:650;margin-bottom:7px;color:#d7cbf0}
     textarea,input,button{font:inherit}
     textarea{
-      display:block;width:100%;min-height:36dvh;flex:1;resize:vertical;
-      border:1px solid #3d2a63;border-radius:12px;background:#160b28;
+      display:block;width:100%;min-height:30dvh;resize:vertical;
+      border:1px solid #3d2a63;border-radius:10px;background:#160b28;
       padding:14px;color:#f0eaf9;font-size:1rem;line-height:1.8;outline:none;
       box-shadow:inset 0 1px 0 #ffffff08;
     }
@@ -31,127 +37,371 @@
     textarea::placeholder{color:#6f5f92}
     .counts{display:flex;justify-content:space-between;gap:12px;color:#a99cc4;font-size:.9rem}
     .count{font-variant-numeric:lining-nums tabular-nums}
-    .controls{display:grid;grid-template-columns:minmax(110px,1fr) minmax(130px,1fr);gap:12px;align-items:end}
-    label{display:block;font-weight:650;margin-bottom:8px;color:#d7cbf0}
-    input[type=number]{width:100%;min-width:0;height:50px;padding:0 12px;border:1px solid #3d2a63;border-radius:9px;background:#160b28;color:#f0eaf9;font-size:1rem;font-family:system-ui,sans-serif}
-    button{
-      min-height:50px;border:0;border-radius:9px;
-      background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;
-      font-weight:700;padding:0 18px;cursor:pointer;touch-action:manipulation;
-      box-shadow:0 6px 18px -6px #7c3aed88;transition:filter .15s;
+    .controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.75fr);gap:12px;align-items:end}
+    input[type=number]{width:100%;min-width:0;height:48px;padding:0 12px;border:1px solid #3d2a63;border-radius:9px;background:#160b28;color:#f0eaf9;font-size:1rem}
+    .actions,.file-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+    button,.file-label{
+      min-height:46px;border:0;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;
+      font-weight:700;padding:0 16px;cursor:pointer;touch-action:manipulation;
+      box-shadow:0 6px 18px -6px #7c3aed88;transition:filter .15s;display:inline-flex;align-items:center;justify-content:center;
     }
-    button:hover{filter:brightness(1.1)}
+    button:hover,.file-label:hover{filter:brightness(1.1)}
     button:active{filter:brightness(.92)}
+    button.secondary,.file-label{background:#291b42;border:1px solid #4d3770;box-shadow:none}
+    button.is-copied{background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:0 6px 18px -6px #22c55e88}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .file-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    .status{font-size:.88rem;color:#9dc9a8}
+    .status.error{color:#fca5a5}
+    .translation-text{
+      min-height:180px;max-height:50dvh;overflow:auto;margin:0;padding:14px;border:1px solid #3d2a63;border-radius:10px;
+      background:#160b28;color:#f0eaf9;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere
+    }
+    .translation-instructions{padding:12px;border-radius:9px;background:#211536;color:#d7cbf0;line-height:1.9}
+    .results-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
     #result{display:grid;gap:12px}
-    .chunk{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:12px;border:1px solid #34235a;border-radius:12px;background:#150a26;box-shadow:0 4px 14px -8px #00000088}
-    .chunk-head{display:grid;gap:4px;color:#a08fc7;font-size:.85rem}
-    .copy-btn{min-height:42px;padding:0 14px;white-space:nowrap}
-    .copy-btn.is-copied{background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:0 6px 18px -6px #22c55e88}
-    .empty{color:#8d7fb0;font-size:.92rem}
-    .version{margin-top:auto;padding-top:8px;text-align:center;color:#6f5f92;font-size:.75rem;opacity:.65}
-    @media(min-width:700px){body{align-items:center}main{min-height:100vh;min-height:100dvh}textarea{min-height:40dvh}}
-    @media(max-width:360px){body{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}button{padding:0 10px}}
+    .chunk{display:grid;gap:10px;margin:0;padding:12px;border:1px solid #34235a;border-radius:12px;background:#160b28}
+    .chunk-head{display:flex;justify-content:space-between;gap:12px;color:#a08fc7;font-size:.85rem}
+    .chunk-text{margin:0;overflow-wrap:anywhere;white-space:pre-wrap;font:inherit;line-height:1.9;color:#f0eaf9}
+    .copy-btn{justify-self:start;min-height:40px;padding:0 14px;white-space:nowrap}
+    .empty{color:#a99cc4;line-height:1.7}
+    .version{margin-top:auto;padding-top:8px;text-align:center;color:#6f5f92;font-size:.75rem;opacity:.7}
+    @media(max-width:430px){body{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.panel{padding:12px}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}button,.file-label{padding:0 11px}}
   </style>
 </head>
 <body>
   <main>
-    <textarea id="source" placeholder="Paste your text here…" spellcheck="false"></textarea>
-    <div class="counts" aria-live="polite"><span>Characters</span><span class="count" id="charCount">0</span></div>
-    <div class="controls">
-      <div class="limit-wrap"><label for="limit">Max characters</label><input id="limit" type="number" inputmode="numeric" min="1" step="1"></div>
-      <button id="split" type="button">Split</button>
-    </div>
-    <section id="result" aria-live="polite"><p class="empty">Chunks will appear here after splitting.</p></section>
-    <footer class="version">Version 1.1.4</footer>
+    <header class="app-header" translate="no">
+      <h1>متن‌چین و محاوره‌ای‌ساز</h1>
+      <p>متن را مستقیم به چانک‌های جمله‌ای تقسیم کن، یا اول در Chrome ترجمه‌اش کن و بعد محاوره‌ای‌سازی و تقسیم کن.</p>
+    </header>
+
+    <section id="inputSection" class="panel" translate="no">
+      <div>
+        <label for="source">متن ورودی</label>
+        <textarea id="source" dir="auto" placeholder="متنت را اینجا بنویس یا جای‌گذاری کن…" spellcheck="false"></textarea>
+      </div>
+      <div class="counts" aria-live="polite"><span>تعداد نویسه‌ها</span><span class="count" id="charCount">۰</span></div>
+      <div class="file-actions">
+        <label class="file-label" for="textFile">بارگذاری فایل متنی</label>
+        <input class="file-input" id="textFile" type="file" accept=".txt,text/plain">
+        <label class="file-label" for="rulesFile">بارگذاری rules.json</label>
+        <input class="file-input" id="rulesFile" type="file" accept=".json,application/json">
+      </div>
+      <div class="controls">
+        <div><label for="limit">حداکثر نویسه در هر چانک</label><input id="limit" type="number" inputmode="numeric" min="1" step="1" value="2000"></div>
+        <div class="actions">
+          <button id="splitButton" type="button">تقسیم مستقیم</button>
+          <button id="prepareButton" class="secondary" type="button">آماده‌سازی ترجمه در Chrome</button>
+        </div>
+      </div>
+      <div id="rulesStatus" class="status" aria-live="polite">در حال بارگذاری قوانین محاوره‌ای‌سازی…</div>
+    </section>
+
+    <section id="translationSection" class="panel" hidden>
+      <div class="translation-instructions" translate="no">
+        <h2>ترجمه در Chrome</h2>
+        <p class="hint">از منوی Chrome گزینهٔ «ترجمه به فارسی» را بزن. بعد از ترجمه، دکمهٔ پایین متن ترجمه‌شده را محاوره‌ای می‌کند و آن را به چانک‌های جمله‌ای تقسیم می‌کند.</p>
+      </div>
+      <div id="translationText" class="translation-text" dir="auto" translate="yes"></div>
+      <div class="actions" translate="no">
+        <button id="convertButton" type="button" disabled>محاوره‌ای‌سازی و تقسیم</button>
+        <button id="backButton" class="secondary" type="button">بازگشت به ورودی</button>
+      </div>
+    </section>
+
+    <section id="resultsSection" class="panel" hidden translate="no">
+      <div class="results-heading">
+        <h2 id="resultsTitle">چانک‌ها</h2>
+        <span id="resultSummary" class="status"></span>
+      </div>
+      <div class="actions">
+        <button id="copyAllButton" class="secondary" type="button">کپی کل متن</button>
+        <button id="downloadButton" class="secondary" type="button">دانلود فایل متنی</button>
+        <button id="newTextButton" class="secondary" type="button">متن دیگر</button>
+      </div>
+      <div id="result" aria-live="polite"></div>
+    </section>
+
+    <footer class="version" translate="no">نسخهٔ 1.2.0</footer>
   </main>
+
+  <script src="./engine.js"></script>
   <script>
-    const source=document.querySelector('#source'), limit=document.querySelector('#limit'), count=document.querySelector('#charCount'), result=document.querySelector('#result');
-    const digits=n=>new Intl.NumberFormat('en-US',{useGrouping:false}).format(n);
-    const LAST_COPIED_KEY='text-splitter-last-copied';
+    const $ = id => document.getElementById(id);
+    const source = $('source'), limit = $('limit'), result = $('result');
+    const digits = n => new Intl.NumberFormat('fa-IR', {useGrouping:false}).format(n);
+    const LAST_COPIED_KEY = 'text-splitter-last-copied';
+    let rules = null;
+    let currentOutput = '';
 
-    function splitId(text,size){
-      let hash=2166136261;
-      for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619)}
-      return `${(hash>>>0).toString(36)}:${size}`;
-    }
+    const DIALOGUE_RE = /(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)/g;
+    const IS_DIALOGUE_RE = /^(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)$/;
 
-    function readLastCopied(){
-      try{
-        const saved=JSON.parse(localStorage.getItem(LAST_COPIED_KEY)||'null');
-        return saved&&typeof saved.splitId==='string'&&Number.isInteger(saved.index)?saved:null;
-      }catch{return null}
-    }
-
-    function saveLastCopied(id,index){
-      try{localStorage.setItem(LAST_COPIED_KEY,JSON.stringify({splitId:id,index}))}catch{}
-    }
-
-    const DIALOGUE_RE=/(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)/g;
-    const IS_DIALOGUE_RE=/^(“[^”]*”|"[^"]*"|‘[^’]*’|«[^»]*»)$/;
-
-    function formatStory(text){
-      const lines=text.replace(DIALOGUE_RE,'\n$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
-      const out=[];
-      for(const line of lines){
-        if(IS_DIALOGUE_RE.test(line)){out.push(line);continue}
-        for(const part of line.split(/(?<=[.!?])\s+/)){
-          const p=part.trim();
-          if(p)out.push(p);
+    function formatStory(text) {
+      const lines = text.replace(/\r\n?/g, '\n').replace(DIALOGUE_RE, '\n$1\n').split('\n').map(line => line.trim()).filter(Boolean);
+      const sentences = [];
+      for (const line of lines) {
+        if (IS_DIALOGUE_RE.test(line)) {
+          sentences.push(line);
+          continue;
+        }
+        for (const part of line.split(/(?<=[.!?؟。！？])\s+/)) {
+          const sentence = part.trim();
+          if (sentence) sentences.push(sentence);
         }
       }
-      return out.join('\n');
+      return sentences.join('\n');
     }
 
-    source.addEventListener('input',()=>{count.textContent=digits(source.value.length)});
-    document.querySelector('#split').addEventListener('click',()=>{
-      const text=source.value, size=Math.floor(Number(limit.value));
-      result.replaceChildren();
-      if(!text){result.innerHTML='<p class="empty">Enter some text first.</p>';return}
-      if(!Number.isFinite(size)||size<1){result.innerHTML='<p class="empty">Max characters must be a number greater than zero.</p>';return}
-      const id=splitId(text,size), lastCopied=readLastCopied();
-      const units=formatStory(text).split('\n').filter(Boolean);
-      const parts=[];
-      let currentUnits=[], currentLength=0;
-      for(const unit of units){
-        const nextLength=currentLength+(currentUnits.length?1:0)+unit.length;
-        if(currentUnits.length&&nextLength>size){
+    function splitId(text, size) {
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(36) + ':' + size;
+    }
+
+    function readLastCopied() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LAST_COPIED_KEY) || 'null');
+        return saved && typeof saved.splitId === 'string' && Number.isInteger(saved.index) ? saved : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveLastCopied(id, index) {
+      try {
+        localStorage.setItem(LAST_COPIED_KEY, JSON.stringify({splitId:id, index}));
+      } catch {}
+    }
+
+    function getChunkSize() {
+      const size = Math.floor(Number(limit.value));
+      if (!Number.isFinite(size) || size < 1) {
+        alert('حداکثر نویسه باید عددی بزرگ‌تر از صفر باشد.');
+        return null;
+      }
+      return size;
+    }
+
+    function renderChunks(text, title) {
+      const formatted = formatStory(text);
+      if (!formatted) {
+        alert('متنی برای تقسیم وجود ندارد.');
+        return;
+      }
+      const size = getChunkSize();
+      if (size === null) return;
+
+      const units = formatted.split('\n').filter(Boolean);
+      const parts = [];
+      let currentUnits = [], currentLength = 0;
+
+      for (const unit of units) {
+        const nextLength = currentLength + (currentUnits.length ? 1 : 0) + unit.length;
+        if (currentUnits.length && nextLength > size) {
           parts.push(currentUnits.join('\n'));
-          currentUnits=[];
-          currentLength=0;
+          currentUnits = [];
+          currentLength = 0;
         }
-        if(currentUnits.length)currentLength+=1;
+        if (currentUnits.length) currentLength += 1;
         currentUnits.push(unit);
-        currentLength+=unit.length;
+        currentLength += unit.length;
       }
-      if(currentUnits.length)parts.push(currentUnits.join('\n'));
-      parts.forEach((part,index)=>{
-        const article=document.createElement('article');article.className='chunk';
-        const header=document.createElement('div');header.className='chunk-head';
-        const label=document.createElement('span');label.textContent=`Chunk ${digits(index+1)} of ${digits(parts.length)}`;
-        const length=document.createElement('span');length.className='count';length.textContent=digits(part.length)+' chars';
-        const copy=document.createElement('button');copy.type='button';copy.className='copy-btn';copy.textContent='Copy chunk';
-        if(lastCopied?.splitId===id&&lastCopied.index===index){copy.classList.add('is-copied');copy.textContent='Copied ✓'}
-        copy.addEventListener('click',async()=>{
-          try{
+      if (currentUnits.length) parts.push(currentUnits.join('\n'));
+
+      currentOutput = formatted;
+      const id = splitId(formatted, size);
+      const lastCopied = readLastCopied();
+      result.replaceChildren();
+      $('resultsTitle').textContent = title;
+      $('resultSummary').textContent = digits(parts.length) + ' چانک · ' + digits(formatted.length) + ' نویسه';
+
+      parts.forEach((part, index) => {
+        const article = document.createElement('article');
+        article.className = 'chunk';
+        const header = document.createElement('div');
+        header.className = 'chunk-head';
+        const label = document.createElement('span');
+        label.textContent = 'چانک ' + digits(index + 1) + ' از ' + digits(parts.length);
+        const length = document.createElement('span');
+        length.className = 'count';
+        length.textContent = digits(part.length) + ' نویسه';
+        header.append(label, length);
+
+        const preview = document.createElement('pre');
+        preview.className = 'chunk-text';
+        preview.dir = 'auto';
+        preview.textContent = part;
+
+        const copy = document.createElement('button');
+        copy.type = 'button';
+        copy.className = 'copy-btn';
+        copy.textContent = 'کپی چانک';
+        if (lastCopied && lastCopied.splitId === id && lastCopied.index === index) {
+          copy.classList.add('is-copied');
+          copy.textContent = 'کپی شد ✓';
+        }
+
+        copy.addEventListener('click', async () => {
+          try {
             await navigator.clipboard.writeText(part);
-            if(!copy.isConnected)return;
-            result.querySelectorAll('.copy-btn.is-copied').forEach(button=>{button.classList.remove('is-copied');button.textContent='Copy chunk'});
+            if (!copy.isConnected) return;
+            result.querySelectorAll('.copy-btn.is-copied').forEach(button => {
+              button.classList.remove('is-copied');
+              button.textContent = 'کپی چانک';
+            });
             copy.classList.add('is-copied');
-            copy.textContent='Copied ✓';
-            saveLastCopied(id,index);
-          }catch{
-            if(!copy.isConnected)return;
-            copy.textContent='Copy failed';
-            setTimeout(()=>{copy.textContent=copy.classList.contains('is-copied')?'Copied ✓':'Copy chunk'},1600);
+            copy.textContent = 'کپی شد ✓';
+            saveLastCopied(id, index);
+          } catch {
+            if (!copy.isConnected) return;
+            copy.textContent = 'کپی ناموفق';
+            setTimeout(() => {
+              copy.textContent = copy.classList.contains('is-copied') ? 'کپی شد ✓' : 'کپی چانک';
+            }, 1600);
           }
         });
-        header.append(label,length);article.append(header,copy);result.append(article);
+
+        article.append(header, preview, copy);
+        result.append(article);
       });
+
+      $('inputSection').hidden = true;
+      $('translationSection').hidden = true;
+      $('resultsSection').hidden = false;
+      $('resultsSection').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    function returnToInput() {
+      document.documentElement.lang = 'fa';
+      $('resultsSection').hidden = true;
+      $('translationSection').hidden = true;
+      $('inputSection').hidden = false;
+      source.focus();
+    }
+
+    function rulesAreValid(value) {
+      return value && typeof value === 'object' &&
+        ['normalizations', 'prefixes', 'phrases', 'suffixes', 'words', 'verbs'].every(key => Array.isArray(value[key]));
+    }
+
+    async function loadRules() {
+      try {
+        const response = await fetch('./rules.json');
+        if (!response.ok) throw new Error('rules.json not found');
+        const loaded = await response.json();
+        if (!rulesAreValid(loaded)) throw new Error('Invalid rules');
+        rules = loaded;
+        $('rulesStatus').textContent = 'قوانین محاوره‌ای‌سازی آماده است ✓';
+        $('convertButton').disabled = false;
+      } catch {
+        $('rulesStatus').textContent = 'قوانین بارگذاری نشد؛ rules.json را انتخاب کن.';
+        $('rulesStatus').classList.add('error');
+      }
+    }
+    loadRules();
+
+    source.addEventListener('input', () => {
+      $('charCount').textContent = digits(source.value.length);
     });
-    
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
+
+    $('textFile').addEventListener('change', async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      source.value = await file.text();
+      source.dispatchEvent(new Event('input'));
+    });
+
+    $('rulesFile').addEventListener('change', async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const loaded = JSON.parse(await file.text());
+        if (!rulesAreValid(loaded)) throw new Error('Invalid rules');
+        rules = loaded;
+        $('rulesStatus').textContent = 'قوانین از فایل ' + file.name + ' بارگذاری شد ✓';
+        $('rulesStatus').classList.remove('error');
+        $('convertButton').disabled = false;
+      } catch {
+        $('rulesStatus').textContent = 'فایل rules.json معتبر نیست.';
+        $('rulesStatus').classList.add('error');
+      }
+    });
+
+    $('splitButton').addEventListener('click', () => {
+      if (!source.value.trim()) {
+        alert('اول متن را وارد کن.');
+        return;
+      }
+      renderChunks(source.value, 'چانک‌های متن');
+    });
+
+    $('prepareButton').addEventListener('click', () => {
+      const text = source.value;
+      if (!text.trim()) {
+        alert('اول متن را وارد کن.');
+        return;
+      }
+      const language = /[\u0600-\u06FF]/.test(text) ? 'fa' : 'en';
+      document.documentElement.lang = language;
+      $('translationText').lang = language;
+      $('translationText').textContent = text;
+      $('inputSection').hidden = true;
+      $('resultsSection').hidden = true;
+      $('translationSection').hidden = false;
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+
+    $('convertButton').addEventListener('click', () => {
+      if (!rules) {
+        alert('اول قوانین rules.json را بارگذاری کن.');
+        return;
+      }
+      const translated = $('translationText').innerText || $('translationText').textContent;
+      if (!translated.trim()) {
+        alert('متن ترجمه‌شده خالی است.');
+        return;
+      }
+      const colloquial = ColloquialEngine.toTehrani(translated, rules);
+      renderChunks(colloquial, 'چانک‌های ترجمهٔ محاوره‌ای‌شده');
+    });
+
+    $('backButton').addEventListener('click', returnToInput);
+    $('newTextButton').addEventListener('click', returnToInput);
+
+    $('copyAllButton').addEventListener('click', async () => {
+      if (!currentOutput) return;
+      try {
+        await navigator.clipboard.writeText(currentOutput);
+        const button = $('copyAllButton');
+        button.textContent = 'کپی شد ✓';
+        setTimeout(() => { button.textContent = 'کپی کل متن'; }, 1200);
+      } catch {
+        alert('کپی انجام نشد.');
+      }
+    });
+
+    $('downloadButton').addEventListener('click', () => {
+      if (!currentOutput) return;
+      const blob = new Blob([currentOutput], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'text-chunks.txt';
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
   </script>
 </body>
 </html>
+
+\n
