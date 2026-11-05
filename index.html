@@ -68,9 +68,8 @@
     .section-heading p{color:#a99cc4;font-size:.86rem;line-height:1.7}
     .results-heading{display:grid;justify-items:center;gap:7px;text-align:center}
     #result{width:100%;display:grid;justify-items:center;gap:12px}
-    .chunk{width:100%;display:grid;justify-items:center;gap:12px;margin:0;padding:16px;border:1px solid #382c49;border-radius:17px;background:#15101f;text-align:center}
-    .chunk-head{width:100%;display:grid;justify-items:center;gap:3px;color:#ab9abf;font-size:.84rem}
-    .chunk-text{width:100%;margin:0;overflow-wrap:anywhere;white-space:pre-wrap;font:inherit;line-height:1.9;color:#f0eaf9;text-align:center}
+    .chunk{width:100%;display:grid;justify-items:center;gap:8px;margin:0;padding:12px;border:1px solid #382c49;border-radius:15px;background:#15101f;text-align:center}
+    .chunk-head{width:100%;display:grid;justify-items:center;color:#ab9abf;font-size:.88rem}
     .copy-btn{min-width:144px;min-height:42px;white-space:nowrap}
     .empty{color:#a99cc4;line-height:1.7;text-align:center}
     .version{margin-top:auto;padding-top:8px;text-align:center;color:#756984;font-size:.73rem;opacity:.75}
@@ -105,7 +104,7 @@
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">✦</span>
         <h1>متن‌چین</h1>
-        <span class="brand-caption">تقسیم متن و محاوره‌ای‌سازی</span>
+        <span class="brand-caption">خط‌بندی · محاوره‌ای‌سازی · چانک‌بندی</span>
       </div>
       <button id="settingsOpen" class="icon-button" type="button" aria-label="تنظیمات" title="تنظیمات">⚙</button>
     </header>
@@ -117,45 +116,54 @@
       </div>
       <div class="counts" aria-live="polite"><span id="charCount">۰ نویسه</span></div>
       <div class="actions">
-        <button id="splitButton" class="primary" type="button">تقسیم به چانک</button>
-        <button id="prepareButton" class="secondary primary" type="button">ترجمه و محاوره‌ای‌سازی</button>
+        <button id="lineBreakButton" class="primary" type="button">جدا کردن جمله‌ها</button>
+        <button id="prepareButton" class="secondary primary" type="button">محاوره‌ای‌سازی</button>
+        <button id="splitButton" class="secondary primary" type="button">تقسیم به چانک</button>
       </div>
     </section>
 
     <section id="translationSection" class="panel" hidden>
       <div class="section-heading" translate="no">
         <h2>ترجمه با Chrome</h2>
-        <p>اول صفحه را ترجمه کن؛ بعد می‌توانی متن ترجمه‌شده را کپی کنی یا محاوره‌ای‌سازی را ادامه بدهی.</p>
+        <p>اگر متن نیاز به ترجمه دارد، با Chrome ترجمه‌اش کن؛ سپس در صورت نیاز متن ترجمه‌شده را کپی کن یا محاوره‌ای‌سازی را انجام بده.</p>
       </div>
       <div id="translationText" class="translation-text" dir="auto" translate="yes"></div>
       <div class="actions" translate="no">
         <button id="translationHelp" class="text-button" type="button">راهنمای ترجمه</button>
         <button id="copyTranslationButton" class="secondary primary" type="button">کپی متن ترجمه‌شده</button>
-        <button id="convertButton" class="primary" type="button" disabled>محاوره‌ای‌سازی و تقسیم</button>
+        <button id="convertButton" class="primary" type="button" disabled>محاوره‌ای‌سازی</button>
         <button id="backButton" class="secondary primary" type="button">بازگشت</button>
+      </div>
+    </section>
+
+    <section id="textOutputSection" class="panel" hidden translate="no">
+      <div class="results-heading">
+        <h2 id="textOutputTitle">خروجی متن</h2>
+        <span id="textOutputSummary" class="status"></span>
+      </div>
+      <pre id="textOutput" class="translation-text" dir="auto"></pre>
+      <div class="actions">
+        <button id="copyOutputButton" class="primary" type="button">کپی متن</button>
+        <button id="outputBackButton" class="text-button" type="button">متن دیگر</button>
       </div>
     </section>
 
     <section id="resultsSection" class="panel" hidden translate="no">
       <div class="results-heading" translate="no">
         <h2 id="resultsTitle">چانک‌ها</h2>
-        <span id="resultSummary" class="status"></span>
-      </div>
-      <div class="actions" translate="no">
-        <button id="copyAllButton" class="secondary primary" type="button">کپی کل متن</button>
-        <button id="downloadButton" class="secondary primary" type="button">دانلود متن</button>
-        <button id="newTextButton" class="text-button" type="button">متن دیگر</button>
       </div>
       <div id="result" aria-live="polite"></div>
+      <button id="newTextButton" class="text-button" type="button">متن دیگر</button>
     </section>
 
     <dialog id="helpDialog" class="modal" aria-labelledby="helpTitle">
       <div class="modal-content" translate="no">
         <h2 id="helpTitle" class="modal-title">راهنما</h2>
         <div class="modal-copy">
-          <p><strong>تقسیم مستقیم:</strong> متن را وارد کن و «تقسیم به چانک» را بزن. جمله‌ها و دیالوگ‌ها جدا می‌شوند و هرکدام در یک خط قرار می‌گیرند.</p>
-          <p><strong>ترجمه و محاوره‌ای‌سازی:</strong> «ترجمه و محاوره‌ای‌سازی» را بزن، سپس از منوی Chrome گزینهٔ «ترجمه به فارسی» را انتخاب کن. می‌توانی متن ترجمه‌شده را همان‌جا کپی کنی یا دکمهٔ محاوره‌ای‌سازی را بزنی.</p>
-          <p>اندازهٔ چانک و بارگذاری فایل‌ها در تنظیمات است. چانک کپی‌شده بعد از بازسازی متن هم مشخص می‌ماند.</p>
+          <p><strong>جدا کردن جمله‌ها:</strong> هر جمله و دیالوگ را به یک خط جدا تبدیل می‌کند.</p>
+          <p><strong>محاوره‌ای‌سازی:</strong> اگر متن به ترجمه نیاز دارد، ابتدا آن را با Chrome ترجمه کن؛ سپس دکمهٔ «محاوره‌ای‌سازی» را بزن.</p>
+          <p><strong>تقسیم به چانک:</strong> متن را بر اساس اندازهٔ تعیین‌شده به چند چانک تقسیم می‌کند. برای هر چانک فقط شماره و دکمهٔ کپی نمایش داده می‌شود؛ چانک کپی‌شده سبز می‌ماند.</p>
+          <p>اندازهٔ چانک و بارگذاری فایل‌ها در تنظیمات است.</p>
         </div>
         <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>بستن</button></div>
       </div>
@@ -179,7 +187,7 @@
       </div>
     </dialog>
 
-    <footer class="version" translate="no">نسخهٔ 1.4.0</footer>
+    <footer class="version" translate="no">نسخهٔ 1.5.0</footer>
   </main>
 
   <script>
@@ -230,7 +238,6 @@
     const digits = n => new Intl.NumberFormat('fa-IR', {useGrouping:false}).format(n);
     const LAST_COPIED_KEY = 'text-splitter-last-copied';
     let rules = null;
-    let currentOutput = '';
 
     $('helpOpen').addEventListener('click', () => $('helpDialog').showModal());
     $('settingsOpen').addEventListener('click', () => $('settingsDialog').showModal());
@@ -261,6 +268,23 @@
         }
       }
       return sentences.join('\n');
+    }
+
+    function showTextOutput(text, title, summary) {
+      if (!text.trim()) {
+        alert('متنی برای نمایش وجود ندارد.');
+        return;
+      }
+      $('textOutputTitle').textContent = title;
+      $('textOutputSummary').textContent = summary;
+      $('textOutput').textContent = text;
+      $('copyOutputButton').classList.remove('is-copied');
+      $('copyOutputButton').textContent = 'کپی متن';
+      $('inputSection').hidden = true;
+      $('translationSection').hidden = true;
+      $('resultsSection').hidden = true;
+      $('textOutputSection').hidden = false;
+      $('textOutputSection').scrollIntoView({behavior:'smooth', block:'start'});
     }
 
     function splitId(text, size) {
@@ -296,7 +320,7 @@
       return size;
     }
 
-    function renderChunks(text, title) {
+    function renderChunks(text) {
       const formatted = formatStory(text);
       if (!formatted) {
         alert('متنی برای تقسیم وجود ندارد.');
@@ -322,12 +346,10 @@
       }
       if (currentUnits.length) parts.push(currentUnits.join('\n'));
 
-      currentOutput = formatted;
       const id = splitId(formatted, size);
       const lastCopied = readLastCopied();
       result.replaceChildren();
-      $('resultsTitle').textContent = title;
-      $('resultSummary').textContent = digits(parts.length) + ' چانک · ' + digits(formatted.length) + ' نویسه';
+      $('resultsTitle').textContent = 'چانک‌های متن';
 
       parts.forEach((part, index) => {
         const article = document.createElement('article');
@@ -336,15 +358,7 @@
         header.className = 'chunk-head';
         const label = document.createElement('span');
         label.textContent = 'چانک ' + digits(index + 1) + ' از ' + digits(parts.length);
-        const length = document.createElement('span');
-        length.className = 'count';
-        length.textContent = digits(part.length) + ' نویسه';
-        header.append(label, length);
-
-        const preview = document.createElement('pre');
-        preview.className = 'chunk-text';
-        preview.dir = 'auto';
-        preview.textContent = part;
+        header.append(label);
 
         const copy = document.createElement('button');
         copy.type = 'button';
@@ -357,7 +371,7 @@
 
         copy.addEventListener('click', async () => {
           try {
-            await navigator.clipboard.writeText(part);
+            await copyText(part);
             if (!copy.isConnected) return;
             result.querySelectorAll('.copy-btn.is-copied').forEach(button => {
               button.classList.remove('is-copied');
@@ -375,12 +389,13 @@
           }
         });
 
-        article.append(header, preview, copy);
+        article.append(header, copy);
         result.append(article);
       });
 
       $('inputSection').hidden = true;
       $('translationSection').hidden = true;
+      $('textOutputSection').hidden = true;
       $('resultsSection').hidden = false;
       $('resultsSection').scrollIntoView({behavior:'smooth', block:'start'});
     }
@@ -389,6 +404,7 @@
       document.documentElement.lang = 'fa';
       $('resultsSection').hidden = true;
       $('translationSection').hidden = true;
+      $('textOutputSection').hidden = true;
       $('inputSection').hidden = false;
       source.focus();
     }
@@ -462,12 +478,21 @@
       }
     });
 
+    $('lineBreakButton').addEventListener('click', () => {
+      if (!source.value.trim()) {
+        alert('اول متن را وارد کن.');
+        return;
+      }
+      const formatted = formatStory(source.value);
+      showTextOutput(formatted, 'جمله‌ها در خط‌های جدا', digits(formatted.split('\n').length) + ' جمله');
+    });
+
     $('splitButton').addEventListener('click', () => {
       if (!source.value.trim()) {
         alert('اول متن را وارد کن.');
         return;
       }
-      renderChunks(source.value, 'چانک‌های متن');
+      renderChunks(source.value);
     });
 
     $('prepareButton').addEventListener('click', () => {
@@ -482,6 +507,7 @@
       $('translationText').textContent = text;
       $('inputSection').hidden = true;
       $('resultsSection').hidden = true;
+      $('textOutputSection').hidden = true;
       $('translationSection').hidden = false;
       window.scrollTo({top:0, behavior:'smooth'});
     });
@@ -497,7 +523,7 @@
         return;
       }
       const colloquial = coreTransform(translated, rules);
-      renderChunks(colloquial, 'چانک‌های ترجمهٔ محاوره‌ای‌شده');
+      showTextOutput(colloquial, 'متن محاوره‌ای‌شده', digits(colloquial.length) + ' نویسه');
     });
 
     async function copyText(text) {
@@ -539,29 +565,25 @@
     });
 
     $('backButton').addEventListener('click', returnToInput);
+    $('outputBackButton').addEventListener('click', returnToInput);
     $('newTextButton').addEventListener('click', returnToInput);
 
-    $('copyAllButton').addEventListener('click', async () => {
-      if (!currentOutput) return;
+    $('copyOutputButton').addEventListener('click', async event => {
+      const text = $('textOutput').textContent || '';
+      if (!text.trim()) return;
+      const button = event.currentTarget;
       try {
-        await navigator.clipboard.writeText(currentOutput);
-        const button = $('copyAllButton');
+        await copyText(text);
+        button.classList.add('is-copied');
         button.textContent = 'کپی شد ✓';
-        setTimeout(() => { button.textContent = 'کپی کل متن'; }, 1200);
+        setTimeout(() => {
+          button.classList.remove('is-copied');
+          button.textContent = 'کپی متن';
+        }, 1500);
       } catch {
-        alert('کپی انجام نشد.');
+        button.textContent = 'کپی ناموفق';
+        setTimeout(() => { button.textContent = 'کپی متن'; }, 1500);
       }
-    });
-
-    $('downloadButton').addEventListener('click', () => {
-      if (!currentOutput) return;
-      const blob = new Blob([currentOutput], {type:'text/plain;charset=utf-8'});
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = 'text-chunks.txt';
-      anchor.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
   </script>
   <script>
