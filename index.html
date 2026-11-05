@@ -125,11 +125,12 @@
     <section id="translationSection" class="panel" hidden>
       <div class="section-heading" translate="no">
         <h2>ترجمه با Chrome</h2>
-        <p>اول صفحه را ترجمه کن، بعد ادامه بده.</p>
+        <p>اول صفحه را ترجمه کن؛ بعد می‌توانی متن ترجمه‌شده را کپی کنی یا محاوره‌ای‌سازی را ادامه بدهی.</p>
       </div>
       <div id="translationText" class="translation-text" dir="auto" translate="yes"></div>
       <div class="actions" translate="no">
         <button id="translationHelp" class="text-button" type="button">راهنمای ترجمه</button>
+        <button id="copyTranslationButton" class="secondary primary" type="button">کپی متن ترجمه‌شده</button>
         <button id="convertButton" class="primary" type="button" disabled>محاوره‌ای‌سازی و تقسیم</button>
         <button id="backButton" class="secondary primary" type="button">بازگشت</button>
       </div>
@@ -153,7 +154,7 @@
         <h2 id="helpTitle" class="modal-title">راهنما</h2>
         <div class="modal-copy">
           <p><strong>تقسیم مستقیم:</strong> متن را وارد کن و «تقسیم به چانک» را بزن. جمله‌ها و دیالوگ‌ها جدا می‌شوند و هرکدام در یک خط قرار می‌گیرند.</p>
-          <p><strong>ترجمه و محاوره‌ای‌سازی:</strong> «ترجمه و محاوره‌ای‌سازی» را بزن، سپس از منوی Chrome گزینهٔ «ترجمه به فارسی» را انتخاب کن و بعد دکمهٔ محاوره‌ای‌سازی را بزن.</p>
+          <p><strong>ترجمه و محاوره‌ای‌سازی:</strong> «ترجمه و محاوره‌ای‌سازی» را بزن، سپس از منوی Chrome گزینهٔ «ترجمه به فارسی» را انتخاب کن. می‌توانی متن ترجمه‌شده را همان‌جا کپی کنی یا دکمهٔ محاوره‌ای‌سازی را بزنی.</p>
           <p>اندازهٔ چانک و بارگذاری فایل‌ها در تنظیمات است. چانک کپی‌شده بعد از بازسازی متن هم مشخص می‌ماند.</p>
         </div>
         <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>بستن</button></div>
@@ -178,11 +179,52 @@
       </div>
     </dialog>
 
-    <footer class="version" translate="no">نسخهٔ 1.3.0</footer>
+    <footer class="version" translate="no">نسخهٔ 1.4.0</footer>
   </main>
 
-  <script src="./engine.js"></script>
   <script>
+    const CORE_BASE_URL = 'https://cdn.jsdelivr.net/gh/MHK-prog/colloquial-core@main/';
+    function loadScript(url, timeoutMs = 8000) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        const timer = setTimeout(() => {
+          script.remove();
+          reject(new Error('Script load timed out'));
+        }, timeoutMs);
+        script.onload = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+        script.onerror = () => {
+          clearTimeout(timer);
+          script.remove();
+          reject(new Error('Script could not be loaded'));
+        };
+        script.src = url;
+        script.async = true;
+        document.head.append(script);
+      });
+    }
+
+    async function loadCoreEngine() {
+      try {
+        await loadScript(CORE_BASE_URL + 'engine.js');
+        if (typeof window.transform !== 'function') throw new Error('Core API is unavailable');
+        return {transform:window.transform, source:'online'};
+      } catch {
+        await loadScript('./engine.js');
+        const transform = window.ColloquialCore?.transform;
+        if (typeof transform !== 'function') throw new Error('Local core is unavailable');
+        return {transform, source:'local'};
+      }
+    }
+
+    let coreTransform = null;
+    const coreReady = loadCoreEngine().then(core => {
+      coreTransform = core.transform;
+      return core.source;
+    });
+
     const $ = id => document.getElementById(id);
     const source = $('source'), limit = $('limit'), result = $('result');
     const digits = n => new Intl.NumberFormat('fa-IR', {useGrouping:false}).format(n);
@@ -356,17 +398,38 @@
         ['normalizations', 'prefixes', 'phrases', 'suffixes', 'words', 'verbs'].every(key => Array.isArray(value[key]));
     }
 
-    async function loadRules() {
+    async function fetchRules(url, remote = false) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
       try {
-        const response = await fetch('./rules.json');
+        const response = await fetch(url, {signal:controller.signal, cache:remote ? 'no-cache' : 'default'});
         if (!response.ok) throw new Error('rules.json not found');
         const loaded = await response.json();
         if (!rulesAreValid(loaded)) throw new Error('Invalid rules');
+        return loaded;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function loadRules() {
+      try {
+        const engineSource = await coreReady;
+        let loaded, rulesSource;
+        try {
+          loaded = await fetchRules(CORE_BASE_URL + 'rules.json', true);
+          rulesSource = 'online';
+        } catch {
+          loaded = await fetchRules('./rules.json');
+          rulesSource = 'local';
+        }
         rules = loaded;
-        $('rulesStatus').textContent = 'قوانین محاوره‌ای‌سازی آماده است ✓';
+        $('rulesStatus').textContent = engineSource === 'online' && rulesSource === 'online'
+          ? 'اتصال به colloquial-core برقرار است ✓'
+          : 'نسخهٔ محلی colloquial-core آماده است ✓';
         $('convertButton').disabled = false;
       } catch {
-        $('rulesStatus').textContent = 'قوانین بارگذاری نشد؛ rules.json را انتخاب کن.';
+        $('rulesStatus').textContent = 'colloquial-core بارگذاری نشد؛ فایل‌های engine.js و rules.json را بررسی کن.';
         $('rulesStatus').classList.add('error');
       }
     }
@@ -424,8 +487,8 @@
     });
 
     $('convertButton').addEventListener('click', () => {
-      if (!rules) {
-        alert('اول قوانین rules.json را بارگذاری کن.');
+      if (!rules || !coreTransform) {
+        alert('colloquial-core هنوز آماده نیست.');
         return;
       }
       const translated = $('translationText').innerText || $('translationText').textContent;
@@ -433,8 +496,46 @@
         alert('متن ترجمه‌شده خالی است.');
         return;
       }
-      const colloquial = ColloquialEngine.toTehrani(translated, rules);
+      const colloquial = coreTransform(translated, rules);
       renderChunks(colloquial, 'چانک‌های ترجمهٔ محاوره‌ای‌شده');
+    });
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch {}
+      const temporary = document.createElement('textarea');
+      temporary.value = text;
+      temporary.setAttribute('readonly', '');
+      temporary.style.position = 'fixed';
+      temporary.style.opacity = '0';
+      document.body.append(temporary);
+      temporary.select();
+      const copied = document.execCommand('copy');
+      temporary.remove();
+      if (!copied) throw new Error('Clipboard copy failed');
+    }
+
+    $('copyTranslationButton').addEventListener('click', async event => {
+      const translated = $('translationText').innerText || $('translationText').textContent || '';
+      if (!translated.trim()) {
+        alert('اول متن را ترجمه کن.');
+        return;
+      }
+      const button = event.currentTarget;
+      try {
+        await copyText(translated);
+        button.classList.add('is-copied');
+        button.textContent = 'متن ترجمه کپی شد ✓';
+        setTimeout(() => {
+          button.classList.remove('is-copied');
+          button.textContent = 'کپی متن ترجمه‌شده';
+        }, 1500);
+      } catch {
+        button.textContent = 'کپی ناموفق';
+        setTimeout(() => { button.textContent = 'کپی متن ترجمه‌شده'; }, 1500);
+      }
     });
 
     $('backButton').addEventListener('click', returnToInput);
