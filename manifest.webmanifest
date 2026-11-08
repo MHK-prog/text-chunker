@@ -1,6 +1,7 @@
 {
-  "name": "متن‌چین و محاوره‌ای‌ساز",
-  "short_name": "متن‌چین",
+  "name": "Text Tools",
+  "short_name": "Text Tools",
+  "description": "Independent tools: Chrome translation · sentence lines · colloquial Persian · chunks.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#100a19",

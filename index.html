@@ -1,18 +1,16 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#100a19">
-  <meta name="description" content="تقسیم متن به جمله‌ها و دیالوگ‌ها، ترجمه با Chrome و محاوره‌ای‌سازی فارسی">
+  <meta name="description" content="Independent text tools: Chrome translation · sentence line breaks · colloquial Persian · chunks.">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="preload" href="./fonts/Vazir-Regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="./fonts/Vazir-Bold.woff2" as="font" type="font/woff2" crossorigin>
-  <title>متن‌چین و محاوره‌ای‌ساز</title>
+  <title>Text Tools</title>
   <style>
     @font-face{font-family:Vazir;src:url('./fonts/Vazir-Regular.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap}
     @font-face{font-family:Vazir;src:url('./fonts/Vazir-Bold.woff2') format('woff2');font-style:normal;font-weight:700;font-display:swap}
-    :root{color-scheme:dark;font-family:Vazir,system-ui,sans-serif;font-synthesis:none;background:#100a19;color:#f3eefb}
+    :root{color-scheme:dark;font-family:Inter,"Segoe UI",system-ui,Vazir,sans-serif;font-synthesis:none;background:#100a19;color:#f3eefb}
     *{box-sizing:border-box}
     [hidden]{display:none!important}
     html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden}
@@ -100,94 +98,95 @@
 <body>
   <main>
     <header class="topbar" translate="no">
-      <button id="helpOpen" class="icon-button" type="button" aria-label="راهنما" title="راهنما">؟</button>
+      <button id="helpOpen" class="icon-button" type="button" aria-label="Help" title="Help">?</button>
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">✦</span>
-        <h1>متن‌چین</h1>
-        <span class="brand-caption">خط‌بندی · محاوره‌ای‌سازی · چانک‌بندی</span>
+        <h1>Text Tools</h1>
+        <span class="brand-caption">Translate · Split Lines · Colloquial Text · Chunk</span>
       </div>
-      <button id="settingsOpen" class="icon-button" type="button" aria-label="تنظیمات" title="تنظیمات">⚙</button>
+      <button id="settingsOpen" class="icon-button" type="button" aria-label="Settings" title="Settings">⚙</button>
     </header>
 
     <section id="inputSection" class="panel" translate="no">
       <div>
-        <label class="entry-label" for="source">متنت رو اینجا وارد کن</label>
-        <textarea id="source" dir="auto" placeholder="متن را بنویس یا جای‌گذاری کن…" spellcheck="false"></textarea>
+        <label class="entry-label" for="source">Current text</label>
+        <textarea id="source" dir="auto" placeholder="Type or paste text here…" spellcheck="false"></textarea>
       </div>
-      <div class="counts" aria-live="polite"><span id="charCount">۰ نویسه</span></div>
+      <div class="counts" aria-live="polite"><span id="charCount">0 characters</span></div>
       <div class="actions">
-        <button id="lineBreakButton" class="primary" type="button">جدا کردن جمله‌ها</button>
-        <button id="prepareButton" class="secondary primary" type="button">محاوره‌ای‌سازی</button>
-        <button id="splitButton" class="secondary primary" type="button">تقسیم به چانک</button>
+        <button id="translateButton" class="secondary primary" type="button">Translate</button>
+        <button id="lineBreakButton" class="primary" type="button">Split into Lines</button>
+        <button id="colloquializeButton" class="secondary primary" type="button" disabled>Make It Colloquial</button>
+        <button id="splitButton" class="secondary primary" type="button">Split into Chunks</button>
       </div>
     </section>
 
     <section id="translationSection" class="panel" hidden>
       <div class="section-heading" translate="no">
-        <h2>ترجمه با Chrome</h2>
-        <p>اگر متن نیاز به ترجمه دارد، با Chrome ترجمه‌اش کن؛ سپس در صورت نیاز متن ترجمه‌شده را کپی کن یا محاوره‌ای‌سازی را انجام بده.</p>
+        <h2>Translate with Chrome</h2>
+        <p>Use Chrome’s Translate page option, then choose Back to Editor. Your translated text will become the current text.</p>
       </div>
       <div id="translationText" class="translation-text" dir="auto" translate="yes"></div>
       <div class="actions" translate="no">
-        <button id="translationHelp" class="text-button" type="button">راهنمای ترجمه</button>
-        <button id="copyTranslationButton" class="secondary primary" type="button">کپی متن ترجمه‌شده</button>
-        <button id="convertButton" class="primary" type="button" disabled>محاوره‌ای‌سازی</button>
-        <button id="backButton" class="secondary primary" type="button">بازگشت</button>
+        <button id="translationHelp" class="text-button" type="button">Translation Help</button>
+        <button id="copyTranslationButton" class="secondary primary" type="button">Copy Translated Text</button>
+        <button id="backButton" class="primary" type="button">Back to Editor</button>
       </div>
     </section>
 
     <section id="textOutputSection" class="panel" hidden translate="no">
       <div class="results-heading">
-        <h2 id="textOutputTitle">خروجی متن</h2>
+        <h2 id="textOutputTitle">Text Output</h2>
         <span id="textOutputSummary" class="status"></span>
       </div>
       <pre id="textOutput" class="translation-text" dir="auto"></pre>
       <div class="actions">
-        <button id="copyOutputButton" class="primary" type="button">کپی متن</button>
-        <button id="outputBackButton" class="text-button" type="button">متن دیگر</button>
+        <button id="copyOutputButton" class="primary" type="button">Copy Text</button>
+        <button id="outputBackButton" class="text-button" type="button">Continue Editing</button>
       </div>
     </section>
 
     <section id="resultsSection" class="panel" hidden translate="no">
       <div class="results-heading" translate="no">
-        <h2 id="resultsTitle">چانک‌ها</h2>
+        <h2 id="resultsTitle">Chunks</h2>
       </div>
       <div id="result" aria-live="polite"></div>
-      <button id="newTextButton" class="text-button" type="button">متن دیگر</button>
+      <button id="newTextButton" class="text-button" type="button">Back to Editor</button>
     </section>
 
     <dialog id="helpDialog" class="modal" aria-labelledby="helpTitle">
       <div class="modal-content" translate="no">
-        <h2 id="helpTitle" class="modal-title">راهنما</h2>
+        <h2 id="helpTitle" class="modal-title">How to Use</h2>
         <div class="modal-copy">
-          <p><strong>جدا کردن جمله‌ها:</strong> هر جمله و دیالوگ را به یک خط جدا تبدیل می‌کند.</p>
-          <p><strong>محاوره‌ای‌سازی:</strong> اگر متن به ترجمه نیاز دارد، ابتدا آن را با Chrome ترجمه کن؛ سپس دکمهٔ «محاوره‌ای‌سازی» را بزن.</p>
-          <p><strong>تقسیم به چانک:</strong> متن را بر اساس اندازهٔ تعیین‌شده به چند چانک تقسیم می‌کند. برای هر چانک فقط شماره و دکمهٔ کپی نمایش داده می‌شود؛ چانک کپی‌شده سبز می‌ماند.</p>
-          <p>اندازهٔ چانک و بارگذاری فایل‌ها در تنظیمات است.</p>
+          <p><strong>Translate:</strong> Opens a separate screen. Use Chrome’s Translate page option, then select Back to Editor to keep the translated text.</p>
+          <p><strong>Split into Lines:</strong> Adds a line break after each sentence and dialogue. The result becomes your current text.</p>
+          <p><strong>Make It Colloquial:</strong> Applies colloquial Persian rules to the current text. Translate first if needed. You can run this before or after splitting into lines.</p>
+          <p><strong>Split into Chunks:</strong> Divides the current text using the character limit in Settings. Each chunk has its number and a copy button; the last copied chunk stays green.</p>
+          <p>These actions are separate. Use them in any order.</p>
         </div>
-        <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>بستن</button></div>
+        <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>Close</button></div>
       </div>
     </dialog>
 
     <dialog id="settingsDialog" class="modal" aria-labelledby="settingsTitle">
       <div class="modal-content" translate="no">
-        <h2 id="settingsTitle" class="modal-title">تنظیمات</h2>
+        <h2 id="settingsTitle" class="modal-title">Settings</h2>
         <div class="settings-field">
-          <label for="limit">حداکثر نویسه در هر چانک</label>
+          <label for="limit">Maximum characters per chunk</label>
           <input id="limit" type="number" inputmode="numeric" min="1" step="1" value="2000">
         </div>
         <div class="file-actions">
-          <label class="file-label" for="textFile">بارگذاری فایل متنی</label>
+          <label class="file-label" for="textFile">Upload text file</label>
           <input class="file-input" id="textFile" type="file" accept=".txt,text/plain">
-          <label class="file-label" for="rulesFile">بارگذاری rules.json</label>
+          <label class="file-label" for="rulesFile">Upload rules.json</label>
           <input class="file-input" id="rulesFile" type="file" accept=".json,application/json">
         </div>
-        <div id="rulesStatus" class="status" aria-live="polite">در حال بارگذاری قوانین محاوره‌ای‌سازی…</div>
-        <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>بستن</button></div>
+        <div id="rulesStatus" class="status" aria-live="polite">Loading colloquialization rules…</div>
+        <div class="modal-actions"><button class="secondary" type="button" data-close-dialog>Close</button></div>
       </div>
     </dialog>
 
-    <footer class="version" translate="no">نسخهٔ 1.5.0</footer>
+    <footer class="version" translate="no">Version 1.6.0</footer>
   </main>
 
   <script>
@@ -235,7 +234,7 @@
 
     const $ = id => document.getElementById(id);
     const source = $('source'), limit = $('limit'), result = $('result');
-    const digits = n => new Intl.NumberFormat('fa-IR', {useGrouping:false}).format(n);
+    const digits = n => new Intl.NumberFormat('en-US', {useGrouping:false}).format(n);
     const LAST_COPIED_KEY = 'text-splitter-last-copied';
     let rules = null;
 
@@ -272,19 +271,25 @@
 
     function showTextOutput(text, title, summary) {
       if (!text.trim()) {
-        alert('متنی برای نمایش وجود ندارد.');
+        alert('There is no text to display.');
         return;
       }
+      setCurrentText(text);
       $('textOutputTitle').textContent = title;
       $('textOutputSummary').textContent = summary;
       $('textOutput').textContent = text;
       $('copyOutputButton').classList.remove('is-copied');
-      $('copyOutputButton').textContent = 'کپی متن';
+      $('copyOutputButton').textContent = 'Copy Text';
       $('inputSection').hidden = true;
       $('translationSection').hidden = true;
       $('resultsSection').hidden = true;
       $('textOutputSection').hidden = false;
       $('textOutputSection').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    function setCurrentText(text) {
+      source.value = text;
+      source.dispatchEvent(new Event('input'));
     }
 
     function splitId(text, size) {
@@ -314,7 +319,7 @@
     function getChunkSize() {
       const size = Math.floor(Number(limit.value));
       if (!Number.isFinite(size) || size < 1) {
-        alert('حداکثر نویسه باید عددی بزرگ‌تر از صفر باشد.');
+        alert('The chunk limit must be a number greater than zero.');
         return null;
       }
       return size;
@@ -323,7 +328,7 @@
     function renderChunks(text) {
       const formatted = formatStory(text);
       if (!formatted) {
-        alert('متنی برای تقسیم وجود ندارد.');
+        alert('There is no text to split.');
         return;
       }
       const size = getChunkSize();
@@ -349,7 +354,7 @@
       const id = splitId(formatted, size);
       const lastCopied = readLastCopied();
       result.replaceChildren();
-      $('resultsTitle').textContent = 'چانک‌های متن';
+      $('resultsTitle').textContent = 'Text Chunks';
 
       parts.forEach((part, index) => {
         const article = document.createElement('article');
@@ -357,16 +362,16 @@
         const header = document.createElement('div');
         header.className = 'chunk-head';
         const label = document.createElement('span');
-        label.textContent = 'چانک ' + digits(index + 1) + ' از ' + digits(parts.length);
+        label.textContent = 'Chunk ' + digits(index + 1) + ' of ' + digits(parts.length);
         header.append(label);
 
         const copy = document.createElement('button');
         copy.type = 'button';
         copy.className = 'copy-btn';
-        copy.textContent = 'کپی چانک';
+        copy.textContent = 'Copy Chunk';
         if (lastCopied && lastCopied.splitId === id && lastCopied.index === index) {
           copy.classList.add('is-copied');
-          copy.textContent = 'کپی شد ✓';
+          copy.textContent = 'Copied ✓';
         }
 
         copy.addEventListener('click', async () => {
@@ -375,16 +380,16 @@
             if (!copy.isConnected) return;
             result.querySelectorAll('.copy-btn.is-copied').forEach(button => {
               button.classList.remove('is-copied');
-              button.textContent = 'کپی چانک';
+              button.textContent = 'Copy Chunk';
             });
             copy.classList.add('is-copied');
-            copy.textContent = 'کپی شد ✓';
+            copy.textContent = 'Copied ✓';
             saveLastCopied(id, index);
           } catch {
             if (!copy.isConnected) return;
-            copy.textContent = 'کپی ناموفق';
+            copy.textContent = 'Copy Failed';
             setTimeout(() => {
-              copy.textContent = copy.classList.contains('is-copied') ? 'کپی شد ✓' : 'کپی چانک';
+              copy.textContent = copy.classList.contains('is-copied') ? 'Copied ✓' : 'Copy Chunk';
             }, 1600);
           }
         });
@@ -401,7 +406,8 @@
     }
 
     function returnToInput() {
-      document.documentElement.lang = 'fa';
+      document.documentElement.lang = 'en';
+      document.documentElement.dir = 'ltr';
       $('resultsSection').hidden = true;
       $('translationSection').hidden = true;
       $('textOutputSection').hidden = true;
@@ -441,25 +447,24 @@
         }
         rules = loaded;
         $('rulesStatus').textContent = engineSource === 'online' && rulesSource === 'online'
-          ? 'اتصال به colloquial-core برقرار است ✓'
-          : 'نسخهٔ محلی colloquial-core آماده است ✓';
-        $('convertButton').disabled = false;
+          ? 'Connected to colloquial-core ✓'
+          : 'Local colloquial-core copy is ready ✓';
+        $('colloquializeButton').disabled = false;
       } catch {
-        $('rulesStatus').textContent = 'colloquial-core بارگذاری نشد؛ فایل‌های engine.js و rules.json را بررسی کن.';
+        $('rulesStatus').textContent = 'Could not load colloquial-core. Check engine.js and rules.json.';
         $('rulesStatus').classList.add('error');
       }
     }
     loadRules();
 
     source.addEventListener('input', () => {
-      $('charCount').textContent = digits(source.value.length) + ' نویسه';
+      $('charCount').textContent = digits(source.value.length) + ' characters';
     });
 
     $('textFile').addEventListener('change', async event => {
       const file = event.target.files[0];
       if (!file) return;
-      source.value = await file.text();
-      source.dispatchEvent(new Event('input'));
+      setCurrentText(await file.text());
     });
 
     $('rulesFile').addEventListener('change', async event => {
@@ -469,40 +474,39 @@
         const loaded = JSON.parse(await file.text());
         if (!rulesAreValid(loaded)) throw new Error('Invalid rules');
         rules = loaded;
-        $('rulesStatus').textContent = 'قوانین از فایل ' + file.name + ' بارگذاری شد ✓';
+        $('rulesStatus').textContent = 'Rules loaded from ' + file.name + ' ✓';
         $('rulesStatus').classList.remove('error');
-        $('convertButton').disabled = false;
+        $('colloquializeButton').disabled = false;
       } catch {
-        $('rulesStatus').textContent = 'فایل rules.json معتبر نیست.';
+        $('rulesStatus').textContent = 'The rules.json file is invalid.';
         $('rulesStatus').classList.add('error');
       }
     });
 
     $('lineBreakButton').addEventListener('click', () => {
       if (!source.value.trim()) {
-        alert('اول متن را وارد کن.');
+        alert('Enter some text first.');
         return;
       }
       const formatted = formatStory(source.value);
-      showTextOutput(formatted, 'جمله‌ها در خط‌های جدا', digits(formatted.split('\n').length) + ' جمله');
+      showTextOutput(formatted, 'Sentences on Separate Lines', digits(formatted.split('\n').length) + ' lines');
     });
 
     $('splitButton').addEventListener('click', () => {
       if (!source.value.trim()) {
-        alert('اول متن را وارد کن.');
+        alert('Enter some text first.');
         return;
       }
       renderChunks(source.value);
     });
 
-    $('prepareButton').addEventListener('click', () => {
+    $('translateButton').addEventListener('click', () => {
       const text = source.value;
       if (!text.trim()) {
-        alert('اول متن را وارد کن.');
+        alert('Enter some text first.');
         return;
       }
       const language = /[\u0600-\u06FF]/.test(text) ? 'fa' : 'en';
-      document.documentElement.lang = language;
       $('translationText').lang = language;
       $('translationText').textContent = text;
       $('inputSection').hidden = true;
@@ -512,18 +516,18 @@
       window.scrollTo({top:0, behavior:'smooth'});
     });
 
-    $('convertButton').addEventListener('click', () => {
+    $('colloquializeButton').addEventListener('click', () => {
       if (!rules || !coreTransform) {
-        alert('colloquial-core هنوز آماده نیست.');
+        alert('Colloquialization rules are still loading.');
         return;
       }
-      const translated = $('translationText').innerText || $('translationText').textContent;
-      if (!translated.trim()) {
-        alert('متن ترجمه‌شده خالی است.');
+      const text = source.value;
+      if (!text.trim()) {
+        alert('Enter some text first.');
         return;
       }
-      const colloquial = coreTransform(translated, rules);
-      showTextOutput(colloquial, 'متن محاوره‌ای‌شده', digits(colloquial.length) + ' نویسه');
+      const colloquial = coreTransform(text, rules);
+      showTextOutput(colloquial, 'Colloquialized Text', digits(colloquial.length) + ' characters');
     });
 
     async function copyText(text) {
@@ -546,25 +550,33 @@
     $('copyTranslationButton').addEventListener('click', async event => {
       const translated = $('translationText').innerText || $('translationText').textContent || '';
       if (!translated.trim()) {
-        alert('اول متن را ترجمه کن.');
+        alert('There is no translated text to copy.');
         return;
       }
       const button = event.currentTarget;
       try {
         await copyText(translated);
         button.classList.add('is-copied');
-        button.textContent = 'متن ترجمه کپی شد ✓';
+        button.textContent = 'Translated Text Copied ✓';
         setTimeout(() => {
           button.classList.remove('is-copied');
-          button.textContent = 'کپی متن ترجمه‌شده';
+          button.textContent = 'Copy Translated Text';
         }, 1500);
       } catch {
-        button.textContent = 'کپی ناموفق';
-        setTimeout(() => { button.textContent = 'کپی متن ترجمه‌شده'; }, 1500);
+        button.textContent = 'Copy Failed';
+        setTimeout(() => { button.textContent = 'Copy Translated Text'; }, 1500);
       }
     });
 
-    $('backButton').addEventListener('click', returnToInput);
+    $('backButton').addEventListener('click', () => {
+      const translated = $('translationText').innerText || $('translationText').textContent || '';
+      if (!translated.trim()) {
+        alert('No translated text was found.');
+        return;
+      }
+      setCurrentText(translated);
+      returnToInput();
+    });
     $('outputBackButton').addEventListener('click', returnToInput);
     $('newTextButton').addEventListener('click', returnToInput);
 
@@ -575,14 +587,14 @@
       try {
         await copyText(text);
         button.classList.add('is-copied');
-        button.textContent = 'کپی شد ✓';
+        button.textContent = 'Copied ✓';
         setTimeout(() => {
           button.classList.remove('is-copied');
-          button.textContent = 'کپی متن';
+          button.textContent = 'Copy Text';
         }, 1500);
       } catch {
-        button.textContent = 'کپی ناموفق';
-        setTimeout(() => { button.textContent = 'کپی متن'; }, 1500);
+        button.textContent = 'Copy Failed';
+        setTimeout(() => { button.textContent = 'Copy Text'; }, 1500);
       }
     });
   </script>
