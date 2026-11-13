@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#100a19">
-  <meta name="app-version" content="1.8.0">
+  <meta name="app-version" content="1.9.0">
   <meta name="description" content="Split text into sentence-based chunks and copy them one by one.">
   <link rel="manifest" href="manifest.webmanifest">
   <title>Text Chunker</title>
@@ -21,10 +21,12 @@
       display:flex;flex-direction:column;align-items:center;
       background:radial-gradient(700px 420px at 50% -12%,#713bb033,transparent 68%),#100a19;
     }
-    main{width:min(100%,680px);flex:1;display:grid;justify-items:center;align-content:center;gap:16px;margin:0 auto}
+    main{width:min(100%,680px);flex:1;display:grid;justify-items:center;align-content:center;gap:12px;margin:0 auto}
     .version{width:100%;padding:8px 0;text-align:center;color:#756984;font-size:.73rem;opacity:.62}
     textarea,input,button{font:inherit}
     .panel{width:100%;display:grid;justify-items:center;gap:16px;padding:clamp(16px,5vw,26px);border:1px solid #342747;border-radius:22px;background:linear-gradient(150deg,#1b1427ee,#171020ee);box-shadow:0 18px 48px -34px #000}
+    .panel.is-results{gap:8px;padding:12px}
+    #editorControls{width:100%;display:grid;justify-items:center;gap:16px}
     textarea{
       display:block;width:100%;min-height:clamp(210px,42dvh,420px);resize:vertical;
       border:1px solid #3d3152;border-radius:16px;background:#120d1b;
@@ -48,27 +50,40 @@
     button.is-copied{background:linear-gradient(135deg,#16834d,#22b878);box-shadow:0 7px 18px -9px #22c55e88}
     .status{color:#c9b8e3;font-size:.88rem;text-align:center;line-height:1.6}
     .status.error{color:#fca5a5}
-    #result{width:100%;display:grid;justify-items:center;gap:10px}
-    .chunk{width:100%;display:grid;justify-items:center;gap:8px;margin:0;padding:12px;border:1px solid #382c49;border-radius:15px;background:#15101f}
-    .chunk-count{color:#c6bad7;font-size:.9rem;text-align:center}
-    .copy-btn{min-width:142px;min-height:42px;white-space:nowrap}
+    #result{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+    .copy-btn{width:100%;min-width:0;min-height:38px;padding:0 4px;border-radius:11px;font-size:.82rem;white-space:nowrap;box-shadow:0 5px 14px -9px #9b5efcaa}
+    .edit-button{width:auto;min-height:32px;padding:0 12px;border-color:#49395f;background:#21182e;color:#ded1ef;font-size:.82rem;box-shadow:none}
     @media(max-width:480px){
       body{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
-      .panel{gap:14px;padding:16px 13px;border-radius:19px}
+      main{align-content:start;gap:8px}
+      .panel{gap:12px;padding:12px 10px;border-radius:17px}
+      .panel.is-results{gap:7px;padding:9px}
+      #editorControls{gap:12px}
       textarea{min-height:40dvh;padding:14px;border-radius:14px}
-      .copy-btn{width:min(100%,240px)}
+      #result{gap:4px}
+      .copy-btn{min-height:36px;font-size:.78rem}
+    }
+    @media(max-height:700px){
+      .panel.is-results{gap:5px;padding:7px}
+      #result{gap:3px}
+      .copy-btn{min-height:33px;font-size:.74rem}
+      .edit-button{min-height:28px}
+      .version{padding:4px 0}
     }
   </style>
 </head>
 <body>
   <main>
-    <section class="panel" aria-label="Text chunker">
-      <textarea id="source" dir="auto" placeholder="Type or paste text here…" spellcheck="false" aria-label="Text to split"></textarea>
-      <div class="limit-control">
-        <label for="chunkSize">Maximum characters per chunk</label>
-        <input id="chunkSize" type="number" inputmode="numeric" min="1" step="1" value="2000" aria-label="Maximum characters per chunk">
+    <section id="panel" class="panel" aria-label="Text chunker">
+      <div id="editorControls">
+        <textarea id="source" dir="auto" placeholder="Type or paste text here…" spellcheck="false" aria-label="Text to split"></textarea>
+        <div class="limit-control">
+          <label for="chunkSize">Maximum characters per chunk</label>
+          <input id="chunkSize" type="number" inputmode="numeric" min="1" step="1" value="2000" aria-label="Maximum characters per chunk">
+        </div>
+        <button id="splitButton" class="primary" type="button">Split into Chunks</button>
       </div>
-      <button id="splitButton" class="primary" type="button">Split into Chunks</button>
+      <button id="editButton" class="edit-button" type="button" hidden>Edit Text</button>
       <div id="status" class="status" role="status" aria-live="polite" hidden></div>
       <div id="result" aria-live="polite" hidden></div>
     </section>
@@ -80,6 +95,9 @@
     const LAST_COPIED_KEY = 'text-splitter-last-copied';
     const source = document.getElementById('source');
     const chunkSizeInput = document.getElementById('chunkSize');
+    const panel = document.getElementById('panel');
+    const editorControls = document.getElementById('editorControls');
+    const editButton = document.getElementById('editButton');
     try {
       const savedSize = Number(localStorage.getItem(CHUNK_SIZE_KEY));
       if (Number.isSafeInteger(savedSize) && savedSize > 0) chunkSizeInput.value = String(savedSize);
@@ -167,6 +185,9 @@
       if (!formatted) {
         result.replaceChildren();
         result.hidden = true;
+        editorControls.hidden = false;
+        editButton.hidden = true;
+        panel.classList.remove('is-results');
         setStatus('There is no text to split.', true);
         return;
       }
@@ -193,19 +214,15 @@
       setStatus('');
 
       parts.forEach((part, index) => {
-        const row = document.createElement('article');
-        row.className = 'chunk';
-        const count = document.createElement('span');
-        count.className = 'chunk-count';
-        count.textContent = 'Chunk ' + digits(index + 1) + ' of ' + digits(parts.length);
-
         const copy = document.createElement('button');
         copy.type = 'button';
         copy.className = 'copy-btn';
-        copy.textContent = 'Copy Chunk';
+        copy.dataset.idleLabel = 'Copy ' + digits(index + 1) + '/' + digits(parts.length);
+        copy.dataset.copiedLabel = 'Copied ' + digits(index + 1) + '/' + digits(parts.length);
+        copy.textContent = copy.dataset.idleLabel;
         if (lastCopied && lastCopied.splitId === id && lastCopied.index === index) {
           copy.classList.add('is-copied');
-          copy.textContent = 'Copied ✓';
+          copy.textContent = copy.dataset.copiedLabel;
         }
 
         copy.addEventListener('click', async () => {
@@ -214,10 +231,10 @@
             if (!copy.isConnected) return;
             result.querySelectorAll('.copy-btn.is-copied').forEach(button => {
               button.classList.remove('is-copied');
-              button.textContent = 'Copy Chunk';
+              button.textContent = button.dataset.idleLabel;
             });
             copy.classList.add('is-copied');
-            copy.textContent = 'Copied ✓';
+            copy.textContent = copy.dataset.copiedLabel;
             saveLastCopied(id, index);
             setStatus('');
           } catch {
@@ -225,13 +242,23 @@
           }
         });
 
-        row.append(count, copy);
-        result.append(row);
+        result.append(copy);
       });
+      editorControls.hidden = true;
+      editButton.hidden = false;
+      panel.classList.add('is-results');
       result.hidden = false;
     }
 
     document.getElementById('splitButton').addEventListener('click', () => renderChunks(source.value));
+    editButton.addEventListener('click', () => {
+      result.hidden = true;
+      editorControls.hidden = false;
+      editButton.hidden = true;
+      panel.classList.remove('is-results');
+      setStatus('');
+      source.focus();
+    });
     chunkSizeInput.addEventListener('input', () => {
       result.hidden = true;
       result.replaceChildren();
