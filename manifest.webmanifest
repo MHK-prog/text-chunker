@@ -1,7 +1,7 @@
 {
-  "name": "Text Tools",
-  "short_name": "Text Tools",
-  "description": "Independent tools: Chrome translation · sentence lines · colloquial Persian · chunks.",
+  "name": "Text Chunker",
+  "short_name": "Chunker",
+  "description": "Split text into sentence-based chunks and copy them one by one.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#100a19",

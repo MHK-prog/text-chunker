@@ -1,26 +1,24 @@
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.7.0';
 const CACHE_PREFIX = 'splitter-';
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './engine.js',
-  './rules.json',
   './fonts/Vazir-Regular.woff2',
   './fonts/Vazir-Bold.woff2'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
+self.addEventListener('install', event => {
+  event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(c => c.addAll(ASSETS))
+      .then(cache => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(keys
         .filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
@@ -29,6 +27,6 @@ self.addEventListener('activate', e => {
   );
 });
 
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+self.addEventListener('fetch', event => {
+  event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
 });
