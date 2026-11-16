@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#100a19">
-  <meta name="app-version" content="1.9.0">
+  <meta name="app-version" content="2.0.0">
   <meta name="description" content="Split text into sentence-based chunks and copy them one by one.">
   <link rel="manifest" href="manifest.webmanifest">
   <title>Text Chunker</title>
@@ -26,15 +26,11 @@
     textarea,input,button{font:inherit}
     .panel{width:100%;display:grid;justify-items:center;gap:16px;padding:clamp(16px,5vw,26px);border:1px solid #342747;border-radius:22px;background:linear-gradient(150deg,#1b1427ee,#171020ee);box-shadow:0 18px 48px -34px #000}
     .panel.is-results{gap:8px;padding:12px}
-    #editorControls{width:100%;display:grid;justify-items:center;gap:16px}
-    textarea{
-      display:block;width:100%;min-height:clamp(210px,42dvh,420px);resize:vertical;
-      border:1px solid #3d3152;border-radius:16px;background:#120d1b;
-      padding:16px;color:#f0eaf9;font-size:1rem;line-height:1.9;outline:none;text-align:center;
-      box-shadow:inset 0 1px 0 #ffffff08;transition:border-color .18s,box-shadow .18s;
-    }
-    textarea:focus{border-color:#ae8cff;box-shadow:0 0 0 3px #8b5cf638}
-    textarea::placeholder{color:#897c9b}
+    #editorControls{width:100%;display:grid;justify-items:center;gap:12px}
+    .preview{width:100%;padding:10px 12px;border:1px solid #3d3152;border-radius:13px;background:#120d1b;text-align:center}
+    .preview-label{display:block;margin-bottom:6px;color:#c6bad7;font-size:.8rem}
+    .preview pre{max-height:7.5em;margin:0;overflow:auto;color:#f0eaf9;font:inherit;font-size:.86rem;line-height:1.55;text-align:start;white-space:pre-wrap;overflow-wrap:anywhere}
+    .toolbar{width:100%;display:flex;justify-content:center;gap:7px;flex-wrap:wrap}
     .limit-control{width:min(100%,360px);display:grid;justify-items:center;gap:7px;color:#c6bad7;font-size:.9rem}
     .limit-control input{width:min(100%,200px);height:46px;padding:0 12px;border:1px solid #3d3152;border-radius:12px;background:#120d1b;color:#f0eaf9;text-align:center;outline:none}
     .limit-control input:focus{border-color:#ae8cff;box-shadow:0 0 0 3px #8b5cf638}
@@ -47,19 +43,37 @@
     button:active{filter:brightness(.94);transform:translateY(1px)}
     button:focus-visible{outline:2px solid #c1a5ff;outline-offset:3px}
     button.primary{width:min(100%,360px)}
+    button.secondary{min-height:34px;padding:0 11px;border-color:#49395f;background:#21182e;color:#ded1ef;font-size:.8rem;box-shadow:none}
     button.is-copied{background:linear-gradient(135deg,#16834d,#22b878);box-shadow:0 7px 18px -9px #22c55e88}
     .status{color:#c9b8e3;font-size:.88rem;text-align:center;line-height:1.6}
     .status.error{color:#fca5a5}
     #result{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
     .copy-btn{width:100%;min-width:0;min-height:38px;padding:0 4px;border-radius:11px;font-size:.82rem;white-space:nowrap;box-shadow:0 5px 14px -9px #9b5efcaa}
     .edit-button{width:auto;min-height:32px;padding:0 12px;border-color:#49395f;background:#21182e;color:#ded1ef;font-size:.82rem;box-shadow:none}
+    .modal{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:#0b0712d9}
+    .modal-card{width:min(100%,440px);max-height:90dvh;overflow:auto;padding:18px;border:1px solid #49395f;border-radius:18px;background:#1b1427;box-shadow:0 20px 60px #0009}
+    .modal-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .modal-heading h2{margin:0;font-size:1.08rem}
+    .modal-close{min-height:32px;padding:0 10px;border-color:#49395f;background:#21182e;box-shadow:none}
+    .modal-help{margin:0 0 12px;color:#c6bad7;font-size:.82rem;line-height:1.55;text-align:center}
+    .prompt-label{display:block;margin-bottom:6px;color:#ded1ef;font-size:.86rem;text-align:center}
+    #promptInput{display:block;width:100%;min-height:150px;resize:vertical;border:1px solid #3d3152;border-radius:12px;background:#120d1b;padding:11px;color:#f0eaf9;line-height:1.6;outline:none}
+    #promptInput:focus{border-color:#ae8cff;box-shadow:0 0 0 3px #8b5cf638}
+    .ai-toggle{display:flex;align-items:center;justify-content:center;gap:11px;margin:14px 0;color:#f0eaf9;font-size:.9rem;cursor:pointer}
+    .ai-toggle input{position:absolute;opacity:0;width:1px;height:1px}
+    .toggle-track{width:44px;height:25px;padding:3px;border-radius:20px;background:#51465e;transition:background .2s}
+    .toggle-track::after{content:"";display:block;width:19px;height:19px;border-radius:50%;background:#fff;transition:transform .2s}
+    .ai-toggle input:checked + .toggle-track{background:#8856d9}
+    .ai-toggle input:checked + .toggle-track::after{transform:translateX(19px)}
+    .ai-toggle input:focus-visible + .toggle-track{outline:2px solid #c1a5ff;outline-offset:3px}
+    #savePromptButton{width:100%;min-height:42px}
     @media(max-width:480px){
       body{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
       main{align-content:start;gap:8px}
       .panel{gap:12px;padding:12px 10px;border-radius:17px}
       .panel.is-results{gap:7px;padding:9px}
       #editorControls{gap:12px}
-      textarea{min-height:40dvh;padding:14px;border-radius:14px}
+      .preview{padding:8px 10px}
       #result{gap:4px}
       .copy-btn{min-height:36px;font-size:.78rem}
     }
@@ -75,29 +89,73 @@
 <body>
   <main>
     <section id="panel" class="panel" aria-label="Text chunker">
+      <div class="toolbar">
+        <button id="editButton" class="edit-button" type="button" hidden>Read New Text</button>
+        <button id="promptButton" class="edit-button" type="button">Prompt · AI Off</button>
+      </div>
       <div id="editorControls">
-        <textarea id="source" dir="auto" placeholder="Type or paste text here…" spellcheck="false" aria-label="Text to split"></textarea>
+        <button id="readClipboardButton" class="primary" type="button">Read Text from Clipboard</button>
+        <div id="preview" class="preview" hidden>
+          <span class="preview-label">Preview · first four lines</span>
+          <pre id="previewText" dir="auto"></pre>
+        </div>
         <div class="limit-control">
           <label for="chunkSize">Maximum characters per chunk</label>
           <input id="chunkSize" type="number" inputmode="numeric" min="1" step="1" value="2000" aria-label="Maximum characters per chunk">
         </div>
-        <button id="splitButton" class="primary" type="button">Split into Chunks</button>
+        <button id="splitButton" class="primary" type="button" hidden>Split into Chunks</button>
       </div>
-      <button id="editButton" class="edit-button" type="button" hidden>Edit Text</button>
       <div id="status" class="status" role="status" aria-live="polite" hidden></div>
       <div id="result" aria-live="polite" hidden></div>
     </section>
   </main>
+  <div id="promptModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="promptTitle" hidden>
+    <div class="modal-card">
+      <div class="modal-heading">
+        <h2 id="promptTitle">Translation Prompt</h2>
+        <button id="closePromptButton" class="modal-close" type="button">Close</button>
+      </div>
+      <p class="modal-help">This prompt is added above every copied chunk. It does not count toward the chunk character limit.</p>
+      <label class="prompt-label" for="promptInput">Prompt text</label>
+      <textarea id="promptInput" dir="auto" spellcheck="false"></textarea>
+      <label class="ai-toggle" for="aiAccessToggle">
+        <input id="aiAccessToggle" type="checkbox">
+        <span class="toggle-track" aria-hidden="true"></span>
+        <span>I have access to AI</span>
+      </label>
+      <button id="savePromptButton" type="button">Save Settings</button>
+    </div>
+  </div>
   <footer id="appVersion" class="version" aria-label="Version"></footer>
 
   <script>
     const CHUNK_SIZE_KEY = 'text-splitter-chunk-size';
     const LAST_COPIED_KEY = 'text-splitter-last-copied';
-    const source = document.getElementById('source');
+    const PROMPT_KEY = 'text-splitter-translation-prompt';
+    const AI_ACCESS_KEY = 'text-splitter-ai-access';
     const chunkSizeInput = document.getElementById('chunkSize');
     const panel = document.getElementById('panel');
     const editorControls = document.getElementById('editorControls');
     const editButton = document.getElementById('editButton');
+    const readClipboardButton = document.getElementById('readClipboardButton');
+    const splitButton = document.getElementById('splitButton');
+    const preview = document.getElementById('preview');
+    const previewText = document.getElementById('previewText');
+    const promptButton = document.getElementById('promptButton');
+    const promptModal = document.getElementById('promptModal');
+    const promptInput = document.getElementById('promptInput');
+    const aiAccessToggle = document.getElementById('aiAccessToggle');
+    let sourceText = '';
+    let translationPrompt = '';
+    let hasAiAccess = false;
+    try {
+      translationPrompt = localStorage.getItem(PROMPT_KEY) || '';
+      hasAiAccess = localStorage.getItem(AI_ACCESS_KEY) === 'true';
+    } catch {}
+    function updatePromptButton() {
+      promptButton.textContent = 'Prompt · AI ' + (hasAiAccess ? 'On' : 'Off');
+    }
+    updatePromptButton();
     try {
       const savedSize = Number(localStorage.getItem(CHUNK_SIZE_KEY));
       if (Number.isSafeInteger(savedSize) && savedSize > 0) chunkSizeInput.value = String(savedSize);
@@ -227,7 +285,9 @@
 
         copy.addEventListener('click', async () => {
           try {
-            await copyText(part);
+            const prompt = translationPrompt.trim();
+            const payload = prompt ? prompt + '\n\n' + part : part;
+            await copyText(payload);
             if (!copy.isConnected) return;
             result.querySelectorAll('.copy-btn.is-copied').forEach(button => {
               button.classList.remove('is-copied');
@@ -250,14 +310,70 @@
       result.hidden = false;
     }
 
-    document.getElementById('splitButton').addEventListener('click', () => renderChunks(source.value));
+    readClipboardButton.addEventListener('click', async () => {
+      sourceText = '';
+      previewText.textContent = '';
+      preview.hidden = true;
+      splitButton.hidden = true;
+      setStatus('');
+      try {
+        if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') throw new Error('Clipboard unavailable');
+        const text = await navigator.clipboard.readText();
+        if (!text.trim()) {
+          sourceText = '';
+          preview.hidden = true;
+          splitButton.hidden = true;
+          setStatus('The clipboard is empty.', true);
+          return;
+        }
+        sourceText = text;
+        previewText.textContent = text.split(/\r\n?|\n/).slice(0, 4).join('\n');
+        preview.hidden = false;
+        splitButton.hidden = false;
+        setStatus('');
+      } catch {
+        setStatus('Could not read the clipboard. Allow clipboard access and try again.', true);
+      }
+    });
+    splitButton.addEventListener('click', () => renderChunks(sourceText));
     editButton.addEventListener('click', () => {
       result.hidden = true;
       editorControls.hidden = false;
       editButton.hidden = true;
       panel.classList.remove('is-results');
+      sourceText = '';
+      previewText.textContent = '';
+      preview.hidden = true;
+      splitButton.hidden = true;
       setStatus('');
-      source.focus();
+      readClipboardButton.focus();
+    });
+    promptButton.addEventListener('click', () => {
+      promptInput.value = translationPrompt;
+      aiAccessToggle.checked = hasAiAccess;
+      promptModal.hidden = false;
+      promptInput.focus();
+    });
+    function closePromptModal() {
+      promptModal.hidden = true;
+      promptButton.focus();
+    }
+    document.getElementById('closePromptButton').addEventListener('click', closePromptModal);
+    promptModal.addEventListener('click', event => {
+      if (event.target === promptModal) closePromptModal();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !promptModal.hidden) closePromptModal();
+    });
+    document.getElementById('savePromptButton').addEventListener('click', () => {
+      translationPrompt = promptInput.value;
+      hasAiAccess = aiAccessToggle.checked;
+      try {
+        localStorage.setItem(PROMPT_KEY, translationPrompt);
+        localStorage.setItem(AI_ACCESS_KEY, String(hasAiAccess));
+      } catch {}
+      updatePromptButton();
+      closePromptModal();
     });
     chunkSizeInput.addEventListener('input', () => {
       result.hidden = true;
@@ -269,11 +385,6 @@
           localStorage.setItem(CHUNK_SIZE_KEY, String(size));
         } catch {}
       }
-    });
-    source.addEventListener('input', () => {
-      result.hidden = true;
-      result.replaceChildren();
-      setStatus('');
     });
   </script>
   <script>
