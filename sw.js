@@ -1,4 +1,4 @@
-const APP_VERSION = new URL(self.location.href).searchParams.get('v') || '2.0.0';
+const APP_VERSION = new URL(self.location.href).searchParams.get('v') || '2.1.0';
 const CACHE_PREFIX = 'splitter-';
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 const ASSETS = [

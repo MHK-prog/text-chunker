@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#100a19">
-  <meta name="app-version" content="2.0.0">
+  <meta name="app-version" content="2.1.0">
   <meta name="description" content="Split text into sentence-based chunks and copy them one by one.">
   <link rel="manifest" href="manifest.webmanifest">
   <title>Text Chunker</title>
@@ -285,7 +285,7 @@
 
         copy.addEventListener('click', async () => {
           try {
-            const prompt = translationPrompt.trim();
+            const prompt = hasAiAccess && index === 0 ? translationPrompt.trim() : '';
             const payload = prompt ? prompt + '\n\n' + part : part;
             await copyText(payload);
             if (!copy.isConnected) return;
